@@ -1,12 +1,15 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>mrsdfor store</title>
+<title>MR Store</title>
 <style>
 body { font-family: Arial,sans-serif; background:#0d1a2b; color:#fff; margin:0; padding:0; }
 header { background:#162b45; text-align:center; padding:20px 0; font-size:2em; font-weight:bold; color:#00bfff; box-shadow:0 0 10px #00bfff; }
+nav { background:#1c2e44; display:flex; justify-content:center; flex-wrap:wrap; }
+nav a { color:#00bfff; text-decoration:none; padding:14px 20px; font-weight:bold; transition:0.3s; cursor:pointer; }
+nav a:hover { color:#0099cc; }
 .container { max-width:700px; margin:30px auto; padding:25px; background:#1c2e44; border-radius:15px; box-shadow:0 0 15px #00bfff; }
 label { display:block; margin-top:15px; font-weight:bold; }
 input, select, textarea { width:100%; padding:12px; margin-top:5px; border:none; border-radius:8px; font-size:1em; box-sizing:border-box; }
@@ -23,126 +26,145 @@ button:hover { background:#0099cc; transform:scale(1.03); }
 .crown { font-size:50px; color:#ffd700; text-shadow:0 0 10px #ffdf00,0 0 20px #ffdf00; animation:float 2s ease-in-out infinite; }
 @keyframes fadeIn { from {opacity:0; transform:scale(0.9);} to {opacity:1; transform:scale(1);} }
 @keyframes float { 0%,100% {transform:translateY(0);} 50% {transform:translateY(-8px);} }
-
-/* نافذة إرسال البريد */
-#sendingPopup {
-    display:none;
-    position:fixed;
-    top:50%;
-    left:50%;
-    transform:translate(-50%, -50%) scale(0.8);
-    background:#162b45;
-    padding:30px;
-    border-radius:20px;
-    text-align:center;
-    color:#00ffcc;
-    font-weight:bold;
-    font-size:1.2em;
-    box-shadow:0 0 20px #00bfff, 0 0 40px #00bfff inset;
-    z-index:9999;
-    opacity:0;
-    transition:all 0.3s ease;
-}
-#sendingPopup span { display:block; font-size:2em; animation:blink 1s infinite; }
-@keyframes blink { 0%,50%,100%{opacity:1} 25%,75%{opacity:0.3} }
+footer { background:#162b45; text-align:center; padding:15px; margin-top:30px; }
+footer a { color:#00bfff; text-decoration:none; }
 </style>
 </head>
 <body>
+<header>MR Store</header>
 
-<header>mrsdfor store</header>
-<div class="container">
-    <form id="storeForm">
-        <label for="typeChoice">ما الذي ترغب به أولاً؟</label>
-        <select id="typeChoice" onchange="showChoice()" required>
-            <option value="">-- اختر --</option>
-            <option value="games">الألعاب</option>
-            <option value="psn">PSN CARDS</option>
+<nav>
+    <a href="https://www.instagram.com/mrsdfor/" target="_blank">صفحة المنشئ</a>
+    <a href="https://www.instagram.com/mrsdfor_store/" target="_blank">صفحة المتجر</a>
+    <a onclick="showProducts()">المنتجات</a>
+    <a onclick="showOffers()">قريبًا</a>
+</nav>
+
+<div class="container" id="productsSection" style="display:none;">
+<form id="orderForm">
+    <label for="category">اختر القسم:</label>
+    <select id="category" onchange="updateCategory()" required>
+        <option value="">-- اختر --</option>
+        <option value="games">الألعاب</option>
+        <option value="psn">PSN CARDS</option>
+    </select>
+
+    <!-- قسم الألعاب -->
+    <div id="gamesSection" style="display:none;">
+        <label for="game">اختيار اللعبة:</label>
+        <select id="game" onchange="updateGameOptions()">
+            <option value="">-- اختر اللعبة --</option>
+            <option value="pubg">PUBG Mobile</option>
+            <option value="freefire">Free Fire</option>
+            <option value="deltaforce">Delta Force Mobile</option>
+            <option value="roblox">Roblox (USA)</option>
+            <option value="newstate">PUBG New State</option>
         </select>
 
-        <!-- قسم الألعاب -->
-        <div id="gamesSection" style="display:none;">
-            <label for="game">اختيار اللعبة:</label>
-            <select id="game" onchange="updateGameOptions()">
-                <option value="">-- اختر اللعبة --</option>
-                <option value="pubg">PUBG Mobile</option>
-                <option value="freefire">Free Fire</option>
-                <option value="deltaforce">Delta Force Mobile</option>
-                <option value="roblox">Roblox (USA)</option>
-                <option value="newstate">PUBG New State</option>
+        <div id="gameAmountSection" style="display:none;">
+            <label for="gameAmount">اختر الباقة:</label>
+            <select id="gameAmount" onchange="showGameDetails()">
+                <option value="">-- اختر الباقة --</option>
             </select>
-
-            <div id="gameAmountSection" style="display:none;">
-                <label for="gameAmount">اختر الباقة:</label>
-                <select id="gameAmount" onchange="showGameDetails()">
-                    <option value="">-- اختر الباقة بعد اختيار اللعبة --</option>
-                </select>
-            </div>
-
-            <div id="gameDetails" style="display:none;">
-                <label for="username">اسم المستخدم / ID:</label>
-                <input type="text" id="username" required>
-                <label for="insta">اسم المستخدم على إنستغرام:</label>
-                <input type="text" id="insta" placeholder="@username" required>
-                <label for="email">البريد الإلكتروني:</label>
-                <input type="email" id="email" required>
-                <label for="notes">ملاحظات إضافية:</label>
-                <textarea id="notes" placeholder="اكتب أي ملاحظات هنا..."></textarea>
-                <button type="button" onclick="sendGameOrder()">إرسال الطلب</button>
-            </div>
         </div>
+    </div>
 
-        <!-- قسم PSN -->
-        <div id="psnSection" style="display:none;">
-            <label for="psnType">اختيار نوع البطاقة:</label>
-            <select id="psnType" onchange="updatePSNOptions()">
-                <option value="">-- اختر النوع --</option>
-                <option value="usa">PSN USA</option>
-                <option value="sa">PSN SA</option>
+    <!-- قسم PSN -->
+    <div id="psnSection" style="display:none;">
+        <label for="psnType">اختر نوع PSN:</label>
+        <select id="psnType" onchange="updatePSNOptions()">
+            <option value="">-- اختر --</option>
+            <option value="usa">PSN USA</option>
+            <option value="sa">PSN SA</option>
+        </select>
+
+        <div id="psnAmountSection" style="display:none;">
+            <label for="psnAmount">اختر الباقة:</label>
+            <select id="psnAmount"></select>
+
+            <label for="psnDelivery">طريقة الاستلام:</label>
+            <select id="psnDelivery" onchange="applyPSNDiscount()">
+                <option value="direct">تنشحن لحسابي مباشرة</option>
+                <option value="code">استلام كود البطاقة (خصم 1.5%)</option>
             </select>
-
-            <div id="psnAmountSection" style="display:none;">
-                <label for="psnAmount">اختر الباقة:</label>
-                <select id="psnAmount" onchange="showPSNDetails()">
-                    <option value="">-- اختر الباقة --</option>
-                </select>
-            </div>
-
-            <div id="psnDetails" style="display:none;">
-                <label for="psnDelivery">طريقة الاستلام:</label>
-                <select id="psnDelivery">
-                    <option value="direct">تنشحن لحسابي مباشرة</option>
-                    <option value="code">استلام كود البطاقة (خصم 1.5%)</option>
-                </select>
-                <label for="psnNotes">ملاحظات إضافية:</label>
-                <textarea id="psnNotes" placeholder="اكتب أي ملاحظات هنا..."></textarea>
-                <button type="button" onclick="sendPSNOrder()">إرسال الطلب</button>
-            </div>
         </div>
-    </form>
+    </div>
+
+    <div id="detailsSection" style="display:none;">
+        <label for="username">اسم المستخدم / ID:</label>
+        <input type="text" id="username" required>
+
+        <label for="insta">اسم المستخدم على إنستغرام:</label>
+        <input type="text" id="insta" placeholder="@username" required>
+
+        <label for="email">البريد الإلكتروني:</label>
+        <input type="email" id="email" required>
+
+        <label for="notes">ملاحظات إضافية:</label>
+        <textarea id="notes" placeholder="اكتب أي ملاحظات هنا..."></textarea>
+
+        <button type="button" onclick="sendOrder()">إرسال الطلب</button>
+        <div class="note">⚠️ تأكد أن جميع المعلومات صحيحة لتفادي أي مشكلة في تسليم الشحن.</div>
+    </div>
+</form>
 </div>
 
-<!-- نافذة البريد المنبثقة -->
-<div id="sendingPopup">
-    <span>✨</span>
-    <p>شكراً لتعاملك مع <strong>MR Store ❤</strong></p>
+<!-- نافذة منبثقة النجاح -->
+<div class="success-popup" id="successPopup">
+    <div class="popup-content">
+        <div class="crown">👑</div>
+        <h2>تم إرسال الطلب بنجاح!</h2>
+        <p>شكرا لتعاملك مع MR Store ❤</p>
+        <button onclick="closePopup()">تم</button>
+    </div>
 </div>
+
+<!-- نافذة منبثقة العروض -->
+<div class="success-popup" id="offersPopup">
+    <div class="popup-content">
+        <h2>⚡ العروض</h2>
+        <p>العروض قادمًا! ترقبوا المزيد من المنتجات المميزة ❤</p>
+        <button onclick="closeOffersPopup()">تم</button>
+    </div>
+</div>
+
+<footer>
+    <p>📧 للتواصل: <a href="mailto:elzw520@gmail.com">elzw520@gmail.com</a></p>
+    <p>© 2025 جميع الحقوق محفوظة - MR Store</p>
+</footer>
 
 <script>
-const pubgOptions = ["30 شدات - 0.40 د.أ","60 شدات - 0.70 د.أ","300 شدات + 25 - 3.5 د.أ","600 شدات + 60 - 6.60 د.أ","1500 شدات + 300 - 16.50 د.أ"];
-const freefireOptions = ["110 جواهر - 0.80 د.أ","231 جواهر - 1.50 د.أ","583 جواهر - 3.60 د.أ","1188 جواهر - 7.15 د.أ","2420 جواهر - 14.30 د.أ"];
-const deltaforceOptions = ["19 عملة - 0.30 د.أ","32 عملة - 0.45 د.أ","63 عملة - 0.80 د.أ","336 عملة - 4 د.أ","482 عملة - 5.50 د.أ","785 عملة - 7.40 د.أ"];
+const pubgOptions = ["30 شدات - 0.40 د.أ","60 شدات - 0.70 د.أ","300+25 - 3.5 د.أ","600+60 - 6.60 د.أ","1500+300 - 16.50 د.أ"];
+const freefireOptions = ["110 جواهر - 0.80 د.أ","231 - 1.50 د.أ","583 - 3.60 د.أ","1188 - 7.15 د.أ","2420 - 14.30 د.أ"];
+const deltaforceOptions = ["19 - 0.30 د.أ","32 - 0.45 د.أ","63 - 0.80 د.أ","336 - 4 د.أ","482 - 5.50 د.أ","785 - 7.40 د.أ"];
 const robloxOptions = ["$10 - 7.60 د.أ","$20 - 14.60 د.أ","$25 - 18 د.أ","$40 - 28.60 د.أ","$50 - 35.65 د.أ","$100 - 71 د.أ"];
 const newstateOptions = ["300 NC - 1 د.أ","1500+80 NC - 3.80 د.أ","3600+250 NC - 8.90 د.أ","9300+930 NC - 22.50 د.أ"];
 const psnUSAOptions = ["$10 - 7.20 د.أ","$25 - 17.85 د.أ","$50 - 32.80 د.أ","$55 - 39.50 د.أ","$75 - 53.50 د.أ"];
 const psnSAOptions = ["$10 - 8.25 د.أ","$20 - 15.20 د.أ","$40 - 30.40 د.أ","$50 - 37.75 د.أ","$70 - 52.35 د.أ"];
 
-function showChoice(){
-    const val = document.getElementById("typeChoice").value;
-    document.getElementById("gamesSection").style.display = val=="games"?"block":"none";
-    document.getElementById("psnSection").style.display = val=="psn"?"block":"none";
+function showProducts(){
+    document.getElementById("productsSection").style.display="block";
+    document.getElementById("offersPopup").style.display="none";
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// الألعاب
+function showOffers(){
+    document.getElementById("productsSection").style.display="none";
+    document.getElementById("offersPopup").style.display="flex";
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function closeOffersPopup(){
+    document.getElementById("offersPopup").style.display="none";
+}
+
+function updateCategory(){
+    const cat = document.getElementById("category").value;
+    document.getElementById("gamesSection").style.display = cat=="games"?"block":"none";
+    document.getElementById("psnSection").style.display = cat=="psn"?"block":"none";
+    document.getElementById("detailsSection").style.display = "none";
+}
+
 function updateGameOptions(){
     const game = document.getElementById("game").value;
     const select = document.getElementById("gameAmount");
@@ -153,58 +175,75 @@ function updateGameOptions(){
     else if(game=="deltaforce") opts = deltaforceOptions;
     else if(game=="roblox") opts = robloxOptions;
     else if(game=="newstate") opts = newstateOptions;
-    opts.forEach(o => { let opt = document.createElement("option"); opt.value=o; opt.textContent=o; select.appendChild(opt); });
+    opts.forEach(o => { let option = document.createElement("option"); option.value=o; option.textContent=o; select.appendChild(option); });
     document.getElementById("gameAmountSection").style.display = opts.length>0?"block":"none";
 }
-function showGameDetails(){ if(document.getElementById("gameAmount").value!="") document.getElementById("gameDetails").style.display="block"; else document.getElementById("gameDetails").style.display="none"; }
 
-// PSN
+function showGameDetails(){
+    const amount = document.getElementById("gameAmount").value;
+    document.getElementById("detailsSection").style.display = amount!=""?"block":"none";
+}
+
 function updatePSNOptions(){
     const type = document.getElementById("psnType").value;
     const select = document.getElementById("psnAmount");
     select.innerHTML = '<option value="">-- اختر الباقة --</option>';
-    let opts = [];
-    if(type=="usa") opts = psnUSAOptions;
-    else if(type=="sa") opts = psnSAOptions;
-    opts.forEach(o => { let opt=document.createElement("option"); opt.value=o; opt.textContent=o; select.appendChild(opt); });
+    let opts = type=="usa"?psnUSAOptions:psnSAOptions;
+    opts.forEach(o => { let option=document.createElement("option"); option.value=o; option.textContent=o; select.appendChild(option); });
     document.getElementById("psnAmountSection").style.display = opts.length>0?"block":"none";
 }
-function showPSNDetails(){ if(document.getElementById("psnAmount").value!="") document.getElementById("psnDetails").style.display="block"; else document.getElementById("psnDetails").style.display="none"; }
 
-// النافذة المنبثقة
-function showSendingPopup(){
-    const popup = document.getElementById("sendingPopup");
-    popup.style.display="block";
-    setTimeout(()=>{popup.style.opacity=1; popup.style.transform="translate(-50%, -50%) scale(1)";},50);
-    setTimeout(()=>{popup.style.opacity=0; popup.style.transform="translate(-50%, -50%) scale(0.8)"; setTimeout(()=>{popup.style.display="none";},300);},1700);
+function applyPSNDiscount(){
+    const delivery = document.getElementById("psnDelivery").value;
+    const type = document.getElementById("psnType").value;
+    const select = document.getElementById("psnAmount");
+    let opts = type=="usa"?psnUSAOptions:psnSAOptions;
+    select.innerHTML = '<option value="">-- اختر الباقة --</option>';
+    opts.forEach(o=>{
+        let [name, price] = o.split(" - ");
+        let dinar = parseFloat(price.replace(" د.أ",""));
+        if(delivery=="code") dinar = (dinar*0.985).toFixed(2);
+        let option = document.createElement("option");
+        option.value=`${name} - ${dinar} د.أ`;
+        option.textContent=`${name} - ${dinar} د.أ`;
+        select.appendChild(option);
+    });
 }
 
-// إرسال البريد
-function sendGameOrder(){
-    if(!confirm("هل جميع المعلومات صحيحة لتأكيد الطلب؟")) return;
-    showSendingPopup();
-    const game=document.getElementById("game").value;
-    const amount=document.getElementById("gameAmount").value;
-    const username=document.getElementById("username").value;
-    const insta=document.getElementById("insta").value;
-    const email=document.getElementById("email").value;
-    const notes=document.getElementById("notes").value;
-    const subject=encodeURIComponent(`طلب لعبة: ${game} - ${amount}`);
-    const body=encodeURIComponent(`اسم المستخدم / ID: ${username}\nإنستغرام: ${insta}\nالبريد: ${email}\nالباقة: ${amount}\nملاحظات: ${notes}`);
-    setTimeout(()=>{ window.location.href=`mailto:asdm86411@gmail.com?subject=${subject}&body=${body}`; },400);
+function sendOrder(){
+    let category = document.getElementById("category").value;
+    let product="", amount="";
+    if(category=="games"){
+        product = document.getElementById("game").value;
+        amount = document.getElementById("gameAmount").value;
+    } else if(category=="psn"){
+        product = document.getElementById("psnType").value;
+        amount = document.getElementById("psnAmount").value + " (" + document.getElementById("psnDelivery").value + ")";
+    }
+    let username = document.getElementById("username").value;
+    let insta = document.getElementById("insta").value;
+    let email = document.getElementById("email").value;
+    let notes = document.getElementById("notes").value;
+    if(!category || !product || !amount || !username || !insta || !email){
+        alert("يرجى تعبئة جميع الحقول بشكل صحيح");
+        return;
+    }
+    const confirmSend = confirm("هل جميع المعلومات صحيحة؟");
+    if(!confirmSend) return;
+
+    let mailto_link = `mailto:elzw520@gmail.com?subject=طلب من MR Store&body=القسم: ${category}%0Aالمنتج: ${product}%0Aالباقة: ${amount}%0Aاسم المستخدم: ${username}%0Aانستغرام: ${insta}%0Aالبريد الإلكتروني: ${email}%0Aملاحظات: ${notes}`;
+    window.location.href = mailto_link;
+
+    document.getElementById("successPopup").style.display="flex";
+    document.getElementById("orderForm").reset();
+    document.getElementById("gamesSection").style.display="none";
+    document.getElementById("psnSection").style.display="none";
+    document.getElementById("gameAmountSection").style.display="none";
+    document.getElementById("psnAmountSection").style.display="none";
+    document.getElementById("detailsSection").style.display="none";
 }
 
-function sendPSNOrder(){
-    if(!confirm("هل جميع المعلومات صحيحة لتأكيد الطلب؟")) return;
-    showSendingPopup();
-    const type=document.getElementById("psnType").value;
-    const amount=document.getElementById("psnAmount").value;
-    const delivery=document.getElementById("psnDelivery").value;
-    const notes=document.getElementById("psnNotes").value;
-    const subject=encodeURIComponent(`طلب بطاقة: ${type} - ${amount}`);
-    const body=encodeURIComponent(`طريقة الاستلام: ${delivery}\nالباقة: ${amount}\nملاحظات: ${notes}`);
-    setTimeout(()=>{ window.location.href=`mailto:asdm86411@gmail.com?subject=${subject}&body=${body}`; },400);
-}
+function closePopup(){document.getElementById("successPopup").style.display="none";}
 </script>
 </body>
 </html>
