@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>MR Store</title>
 <style>
-:root{--bg:#0b0f1a;--card:#111726;--accent:#4da3ff;--gold:#ffd700;--note:#ffcc00;--muted:#99a3b3;--success:#00d4aa;--error:#ff4444}
+:root{--bg:#0b0f1a;--card:#111726;--accent:#4da3ff;--gold:#ffd700;--note:#ffcc00;--muted:#99a3b3;--success:#00d4aa;--error:#ff4444;--warning:#ff9800}
 body{margin:0;font-family:"Tajawal",sans-serif;background:var(--bg);color:#fff}
 header{background:var(--card);padding:18px;text-align:center;font-size:22px;color:var(--accent);font-weight:700;position:relative;display:flex;justify-content:space-between;align-items:center}
 
@@ -15,7 +15,8 @@ header{background:var(--card);padding:18px;text-align:center;font-size:22px;colo
 
 /* قائمة المستخدم في الهيدر */
 #headerUserMenu{display:flex;gap:8px;align-items:center}
-#headerUserAvatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#ffd700,#ffb84d);display:flex;align-items:center;justify-content:center;color:#081220;font-weight:900;cursor:pointer}
+#headerUserAvatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#ffd700,#ffb84d);display:flex;align-items:center;justify-content:center;color:#081220;font-weight:900;cursor:pointer;overflow:hidden;object-fit:cover}
+#headerUserAvatarFallback{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#ffd700,#ffb84d);display:flex;align-items:center;justify-content:center;color:#081220;font-weight:900;cursor:pointer}
 #headerUserName{background:rgba(255,255,255,0.03);padding:8px 10px;border-radius:10px;color:var(--accent);font-weight:800;cursor:pointer}
 
 nav{background:#131a2c;display:flex;justify-content:center;gap:8px;padding:8px;flex-wrap:wrap}
@@ -137,12 +138,20 @@ button.full-width{width:100%}
 .user-dropdown button:hover{background:#0f1724}
 
 /* profile page */
-#profilePanel{display:none;position:fixed;inset:60px 20px 20px 20px;background:rgba(2,6,12,0.95);z-index:10002;padding:18px;border-radius:12px;overflow:auto;border:1px solid #4da3ff33}
-.profile-header{display:flex;gap:12px;align-items:center;justify-content:space-between}
-.profile-box{background:var(--card);padding:12px;border-radius:10px;border:1px solid #4da3ff33;margin-top:12px}
+#profilePanel{display:none;position:fixed;inset:0;background:rgba(2,6,12,0.97);z-index:10002;padding:18px;overflow:auto;border:none}
+.profile-header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:20px}
+.profile-box{background:var(--card);padding:15px;border-radius:10px;border:1px solid #4da3ff33;margin-top:12px}
 .order-item{background:#0e1724;padding:10px;border-radius:8px;margin-top:8px;border:1px solid rgba(255,255,255,0.03)}
 
-/* repeat order button */
+/* زر الرجوع في الملف الشخصي */
+.back-btn{background:transparent;color:var(--accent);border:1px solid var(--accent);padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:700;display:flex;align-items:center;gap:8px}
+.back-btn:hover{background:rgba(77,163,255,0.1)}
+
+/* زر تحميل الصورة */
+.upload-btn{background:#ffd700;color:#000;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:8px}
+.upload-btn:hover{background:#ffcc00}
+
+/* زر إعادة الطلب */
 .repeat-order-btn{background:#ffd700;color:#000;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:700;font-size:12px}
 .repeat-order-btn:hover{background:#ffcc00}
 
@@ -172,12 +181,32 @@ button.full-width{width:100%}
   100%{transform:rotate(360deg)}
 }
 
+/* صورة الملف الشخصي الكبيرة */
+.profile-avatar-large{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,#ffd700,#ffb84d);display:flex;align-items:center;justify-content:center;color:#081220;font-weight:900;font-size:32px;overflow:hidden;object-fit:cover;cursor:pointer;border:3px solid var(--accent)}
+
+/* input file مخفي */
+.file-input{display:none}
+
+/* security question */
+.security-box{background:rgba(0,212,170,0.1);padding:15px;border-radius:10px;margin:15px 0;border-left:4px solid #00d4aa}
+.security-question{font-weight:700;color:#00d4aa;margin-bottom:10px}
+
+/* security modal */
+.security-option{background:#0f1724;padding:12px;border-radius:8px;cursor:pointer;border:1px solid #4da3ff33;margin-bottom:10px;transition:all 0.3s}
+.security-option:hover{border-color:#4da3ff}
+.security-option.selected{background:rgba(0,212,170,0.2);border-color:#00d4aa}
+.recovery-steps{background:rgba(255,215,0,0.1);padding:15px;border-radius:8px;margin:15px 0;border-left:4px solid #ffd700}
+.step{margin-bottom:10px;padding-right:15px;position:relative}
+.step:before{content:"•";position:absolute;right:0;color:#ffd700;font-size:20px}
+
 /* responsive */
 @media(max-width:520px){
   .row{flex-direction:column}
   .small{width:100%}
   #headerUserName{display:none}
   header{padding:12px}
+  .profile-avatar-large{width:80px;height:80px;font-size:28px}
+  .modal{width:92%}
 }
 </style>
 </head>
@@ -191,7 +220,8 @@ button.full-width{width:100%}
     
     <!-- قائمة المستخدم في الهيدر -->
     <div id="headerUserMenu" style="display:none">
-      <div id="headerUserAvatar" onclick="toggleHeaderDropdown()">A</div>
+      <img id="headerUserAvatar" src="" alt="صورة الملف" style="display:none">
+      <div id="headerUserAvatarFallback">A</div>
       <div id="headerUserName" onclick="toggleHeaderDropdown()">اسمك</div>
       <div id="headerDropdown" class="user-dropdown">
         <button onclick="openProfile()">👤 الملف الشخصي</button>
@@ -352,16 +382,36 @@ button.full-width{width:100%}
 <div id="profilePanel">
   <div class="profile-header">
     <div style="display:flex;gap:12px;align-items:center">
-      <div id="profileAvatar" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#ffd700,#ffb84d);display:flex;align-items:center;justify-content:center;color:#081220;font-weight:900;font-size:22px">A</div>
-      <div>
-        <div id="profileName" style="font-size:20px;font-weight:900;color:var(--accent)">اسم المستخدم</div>
-        <div id="profileInsta" style="color:var(--muted);font-size:14px">@insta</div>
-        <div id="profileEmail" style="color:var(--muted);font-size:14px">email@example.com</div>
-      </div>
+      <button class="back-btn" onclick="closeProfile()">
+        ← الرجوع
+      </button>
     </div>
     <div>
       <button onclick="closeProfile()" style="width:auto;padding:8px 12px;background:#4da3ff;color:#fff;border-radius:10px;border:none;cursor:pointer">إغلاق</button>
     </div>
+  </div>
+
+  <div style="text-align:center;margin-bottom:20px">
+    <!-- صورة الملف الشخصي الكبيرة -->
+    <img id="profileAvatarLarge" class="profile-avatar-large" src="" alt="صورة الملف" style="display:none;margin:0 auto">
+    <div id="profileAvatarFallback" class="profile-avatar-large" style="margin:0 auto">A</div>
+    
+    <!-- زر تحميل صورة -->
+    <input type="file" id="profileImageInput" class="file-input" accept="image/*">
+    <button class="upload-btn" onclick="document.getElementById('profileImageInput').click()" style="margin-top:10px">
+      📷 تغيير الصورة
+    </button>
+    <button class="upload-btn" onclick="removeProfileImage()" style="margin-top:10px;background:#ff4444;color:white">
+      🗑️ حذف الصورة
+    </button>
+  </div>
+
+  <div class="profile-box">
+    <h4>👤 معلومات المستخدم</h4>
+    <div id="profileName" style="font-size:20px;font-weight:900;color:var(--accent);margin-bottom:5px">اسم المستخدم</div>
+    <div id="profileInsta" style="color:var(--muted);font-size:14px;margin-bottom:5px">@insta</div>
+    <div id="profileEmail" style="color:var(--muted);font-size:14px">email@example.com</div>
+    <div id="profileMemberSince" style="color:var(--muted);font-size:14px;margin-top:5px">عضو منذ: 2025-01-01</div>
   </div>
 
   <div class="profile-box">
@@ -370,8 +420,9 @@ button.full-width{width:100%}
       <input id="editName" placeholder="الاسم" style="width:45%"/>
       <input id="editInsta" placeholder="@instagram" style="width:45%"/>
     </div>
-    <button onclick="saveProfile()" style="margin-top:10px">💾 حفظ التغييرات</button>
-    <button onclick="openChangePassword()" style="margin-top:10px;background:#ffd700;color:#000">🔐 تغيير كلمة السر</button>
+    <button onclick="saveProfile()" style="margin-top:10px;width:100%">💾 حفظ التغييرات</button>
+    <button onclick="openChangePassword()" style="margin-top:10px;width:100%;background:#ffd700;color:#000">🔐 تغيير كلمة السر</button>
+    <button onclick="setupSecurityQuestion()" style="margin-top:10px;width:100%;background:#00d4aa;color:#000">🔒 إعداد سؤال أمان</button>
   </div>
 
   <div class="profile-box">
@@ -419,7 +470,7 @@ const DATA = {
 
 /* ================= GLOBAL VARIABLES ================= */
 let currentUser = null;
-let lastOrderData = null; // لتخزين آخر طلب لإعادة استخدامه
+let lastOrderData = null;
 
 /* ================= ELEMENTS ================= */
 const paymentSection = document.getElementById('paymentSection');
@@ -438,20 +489,21 @@ const repeatLastBtn = document.getElementById('repeatLastBtn');
 const quickHistory = document.getElementById('quickHistory');
 const quickHistoryList = document.getElementById('quickHistoryList');
 const loading = document.getElementById('loading');
+const profileImageInput = document.getElementById('profileImageInput');
 
 /* ================= INITIALIZATION ================= */
 function init() {
-  // تهيئة واجهة المستخدم
   initAuthUI();
   resetDiscountButton('game');
   resetDiscountButton('psn');
   showProducts();
-  
-  // تحميل آخر طلب إذا كان موجوداً
   loadLastOrder();
-  
-  // تحديث القائمة السريعة
   updateQuickHistory();
+  
+  // إعداد حدث تحميل الصور
+  if (profileImageInput) {
+    profileImageInput.addEventListener('change', handleProfileImageUpload);
+  }
 }
 
 /* ================= SHOW SECTIONS ================= */
@@ -469,8 +521,6 @@ function showProducts(){
   cardsSection.style.display='none';
   productsSection.style.display='block';
   window.scrollTo({top:0,behavior:'smooth'});
-  
-  // إظهار القائمة السريعة إذا كان المستخدم مسجلاً
   updateQuickHistory();
 }
 
@@ -640,7 +690,6 @@ function buildOrderBodyEncoded(){
   arr.push(`📧 البريد الإلكتروني: ${document.getElementById('email').value}`);
   arr.push(`📝 ملاحظات: ${document.getElementById('notes').value||'-'}`);
 
-  // تخزين بيانات الطلب الأخير
   lastOrderData = {
     category: cat,
     game: document.getElementById('game').value,
@@ -656,7 +705,6 @@ function buildOrderBodyEncoded(){
     timestamp: Date.now()
   };
   
-  // حفظ في localStorage
   localStorage.setItem('mr_last_order', JSON.stringify(lastOrderData));
 
   return encodeURIComponent(arr.join("\n"));
@@ -681,19 +729,13 @@ async function sendOrder(){
     const bodyEnc=buildOrderBodyEncoded();
     const bodyPlain=decodeURIComponent(bodyEnc);
 
-    // نسخ الطلب إلى الحافظة
     try{await navigator.clipboard.writeText(bodyPlain);}catch(e){}
 
-    // حفظ الطلب للمستخدم المسجل
     saveOrderForUser(bodyPlain);
 
-    // إظهار زر إعادة الطلب
     repeatLastBtn.style.display='block';
-    
-    // تحديث القائمة السريعة
     updateQuickHistory();
 
-    // فتح البريد الإلكتروني
     const subject=encodeURIComponent("طلب من MR Store");
     const to="asdm86411@gmail.com";
     const cc="elzw520@gmail.com";
@@ -721,7 +763,6 @@ function repeatLastOrder(){
     }
   }
   
-  // تعبئة النموذج ببيانات الطلب السابق
   document.getElementById('category').value = lastOrderData.category || '';
   updateCategory();
   
@@ -731,7 +772,6 @@ function repeatLastOrder(){
       updateGameOptions();
       
       setTimeout(() => {
-        // تحديد العناصر المختارة سابقاً
         const items = lastOrderData.gameItems || [];
         for(let i = 0; i < gameAmount.options.length; i++) {
           const option = gameAmount.options[i];
@@ -751,7 +791,6 @@ function repeatLastOrder(){
       updatePSNOptions();
       
       setTimeout(() => {
-        // تحديد العناصر المختارة سابقاً
         const items = lastOrderData.psnItems || [];
         for(let i = 0; i < psnAmount.options.length; i++) {
           const option = psnAmount.options[i];
@@ -766,7 +805,6 @@ function repeatLastOrder(){
     }, 100);
   }
   
-  // تعبئة بيانات المستخدم
   document.getElementById('username').value = lastOrderData.username || '';
   document.getElementById('insta').value = lastOrderData.insta || '';
   document.getElementById('email').value = lastOrderData.email || '';
@@ -800,14 +838,13 @@ function updateQuickHistory(){
     return;
   }
   
-  const orders = users[currentEmail].orders.slice(-3).reverse(); // آخر 3 طلبات
+  const orders = users[currentEmail].orders.slice(-3).reverse();
   quickHistoryList.innerHTML = '';
   
   orders.forEach((order, index) => {
     const div = document.createElement('div');
     div.className = 'history-item';
     
-    // استخراج التفاصيل من نص الطلب
     const lines = order.body.split('\n');
     const category = lines.find(l => l.includes('القسم:'))?.replace('القسم:', '').trim() || '';
     const total = lines.find(l => l.includes('المبلغ الإجمالي الكلي:'))?.replace('المبلغ الإجمالي الكلي:', '').trim() || '0.00 د.أ';
@@ -841,18 +878,28 @@ function fillOrderFromHistory(orderIndex){
   const order = orders[orderIndex];
   
   try {
-    // تحليل نص الطلب لاستخراج البيانات
     const lines = order.body.split('\n');
     const category = lines.find(l => l.includes('القسم:'))?.replace('القسم:', '').trim();
     
     document.getElementById('category').value = category || '';
     updateCategory();
     
-    // هنا يمكن إضافة تحليل أكثر تفصيلاً للطلب
+    const userLine = lines.find(l => l.includes('اسم المستخدم/ID:'));
+    const instaLine = lines.find(l => l.includes('إنستغرام:'));
+    const emailLine = lines.find(l => l.includes('البريد الإلكتروني:'));
+    const notesLine = lines.find(l => l.includes('ملاحظات:'));
     
-    showAlert('سيتم تعبئة بيانات الطلب المحدد','info');
+    if(userLine) document.getElementById('username').value = userLine.split(':')[1]?.trim() || '';
+    if(instaLine) document.getElementById('insta').value = instaLine.split(':')[1]?.trim() || '';
+    if(emailLine) document.getElementById('email').value = emailLine.split(':')[1]?.trim() || '';
+    if(notesLine && notesLine.includes('ملاحظات:')) {
+      document.getElementById('notes').value = notesLine.split(':')[1]?.trim() || '';
+    }
+    
+    closeProfile();
+    showAlert('تم تعبئة بيانات الطلب، يرجى اختيار المنتجات مرة أخرى','success');
   } catch(e) {
-    showAlert('حدث خطأ في تحليل الطلب القديم','error');
+    showAlert('حدث خطأ في تحليل الطلب','error');
   }
 }
 
@@ -870,6 +917,93 @@ function showLoading(show){
   loading.style.display = show ? 'block' : 'none';
 }
 
+/* ================= PROFILE IMAGE HANDLING ================= */
+function handleProfileImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  if (file.size > 2 * 1024 * 1024) {
+    showAlert('حجم الصورة يجب أن يكون أقل من 2MB', 'error');
+    return;
+  }
+  
+  if (!file.type.match('image.*')) {
+    showAlert('يرجى اختيار ملف صورة فقط', 'error');
+    return;
+  }
+  
+  const reader = new FileReader();
+  
+  reader.onload = function(e) {
+    const imageData = e.target.result;
+    
+    const users = getUsers();
+    const currentEmail = localStorage.getItem('mr_current');
+    
+    if (currentEmail && users[currentEmail]) {
+      users[currentEmail].profileImage = imageData;
+      saveUsers(users);
+      
+      updateProfileImages(imageData);
+      showAlert('تم تحديث صورة الملف الشخصي', 'success');
+    }
+  };
+  
+  reader.readAsDataURL(file);
+}
+
+function updateProfileImages(imageData) {
+  // تحديث صورة الهيدر
+  const headerAvatar = document.getElementById('headerUserAvatar');
+  const headerFallback = document.getElementById('headerUserAvatarFallback');
+  
+  if (imageData) {
+    headerAvatar.src = imageData;
+    headerAvatar.style.display = 'block';
+    if (headerFallback) headerFallback.style.display = 'none';
+  } else {
+    if (headerAvatar) headerAvatar.style.display = 'none';
+    if (headerFallback) headerFallback.style.display = 'flex';
+  }
+  
+  // تحديث صورة الملف الشخصي الكبيرة
+  const profileAvatarLarge = document.getElementById('profileAvatarLarge');
+  const profileAvatarFallback = document.getElementById('profileAvatarFallback');
+  
+  if (imageData) {
+    profileAvatarLarge.src = imageData;
+    profileAvatarLarge.style.display = 'block';
+    if (profileAvatarFallback) profileAvatarFallback.style.display = 'none';
+  } else {
+    if (profileAvatarLarge) profileAvatarLarge.style.display = 'none';
+    if (profileAvatarFallback) profileAvatarFallback.style.display = 'flex';
+  }
+}
+
+function removeProfileImage() {
+  const users = getUsers();
+  const currentEmail = localStorage.getItem('mr_current');
+  
+  if (currentEmail && users[currentEmail]) {
+    delete users[currentEmail].profileImage;
+    saveUsers(users);
+    
+    updateProfileImages(null);
+    showAlert('تم حذف صورة الملف الشخصي', 'success');
+  }
+}
+
+function loadProfileImage() {
+  const users = getUsers();
+  const currentEmail = localStorage.getItem('mr_current');
+  
+  if (currentEmail && users[currentEmail] && users[currentEmail].profileImage) {
+    updateProfileImages(users[currentEmail].profileImage);
+  } else {
+    updateProfileImages(null);
+  }
+}
+
 /* ================= AUTHENTICATION SYSTEM ================= */
 function getUsers(){
   try{ return JSON.parse(localStorage.getItem('mr_users')||'{}'); } catch(e){ return {}; }
@@ -877,7 +1011,6 @@ function getUsers(){
 function saveUsers(obj){ localStorage.setItem('mr_users', JSON.stringify(obj)); }
 
 function hashPassword(str){
-  // دالة تجزئة بسيطة للاستخدام التعليمي
   let hash = 0;
   for(let i = 0; i < str.length; i++){
     const char = str.charCodeAt(i);
@@ -905,30 +1038,44 @@ function openAuth(){
   const modal = document.createElement('div');
   modal.className='modal';
   modal.innerHTML = `
-    <h3>👤 تسجيل / تسجيل الدخول</h3>
+    <h3 style="text-align: center;">👤 تسجيل الدخول / إنشاء حساب</h3>
     <div id="authForms">
       <div id="signInForm">
         <div class="form-row"><input id="loginEmail" placeholder="البريد الإلكتروني" /></div>
         <div class="form-row"><input id="loginPass" type="password" placeholder="كلمة المرور" /></div>
-        <div style="display:flex;gap:8px">
-          <button onclick="doLogin()" style="flex:1">تسجيل الدخول</button>
-          <button onclick="showSignUp()" style="flex:1;background:#ffd700">أنشئ حساب</button>
+        <div style="display:flex;gap:8px; margin-top: 20px;">
+          <button onclick="doLogin()" style="flex:1; background: var(--accent); color: #000; font-weight: 900;">تسجيل الدخول</button>
+          <button onclick="showSignUp()" style="flex:1; background:#ffd700; color:#000; font-weight: 900;">إنشاء حساب</button>
         </div>
-        <div class="small-note">ستبقى معلوماتك مخزنة محلياً فقط على جهازك.</div>
+        <div style="text-align: center; margin-top: 15px;">
+          <button onclick="openPasswordRecovery()" style="background: transparent; color: #ffd700; border: none; cursor: pointer; font-size: 14px; text-decoration: underline;">
+            🔓 نسيت كلمة المرور؟
+          </button>
+        </div>
+        <div class="small-note" style="text-align: center; margin-top: 10px;">
+          ستبقى معلوماتك مخزنة محلياً على جهازك فقط
+        </div>
       </div>
       <div id="signUpForm" style="display:none">
-        <div class="form-row"><input id="regUser" placeholder="الاسم" /></div>
+        <div class="form-row"><input id="regUser" placeholder="الاسم الكامل" /></div>
         <div class="form-row"><input id="regInsta" placeholder="@Instagram (اختياري)" /></div>
         <div class="form-row"><input id="regEmail" placeholder="البريد الإلكتروني" /></div>
         <div class="form-row"><input id="regPass" type="password" placeholder="كلمة المرور" /></div>
-        <div style="display:flex;gap:8px">
-          <button onclick="doSignUp()" style="flex:1">تسجيل</button>
-          <button onclick="showSignIn()" style="flex:1;background:#ffd700">العودة لتسجيل الدخول</button>
+        <div class="form-row"><input id="regPassConfirm" type="password" placeholder="تأكيد كلمة المرور" /></div>
+        <div style="display:flex;gap:8px; margin-top: 20px;">
+          <button onclick="doSignUp()" style="flex:1; background: #00d4aa; color: #000; font-weight: 900;">إنشاء حساب</button>
+          <button onclick="showSignIn()" style="flex:1; background:#ffd700; color:#000; font-weight: 900;">لديك حساب؟</button>
         </div>
-        <div class="small-note">كلمة المرور تحفظ محلياً (غير مشفرة هنا). للاستخدام المبسّط فقط.</div>
+        <div class="small-note" style="text-align: center; margin-top: 10px;">
+          ننصح بإعداد سؤال أمان بعد التسجيل لاستعادة الحساب عند الحاجة
+        </div>
       </div>
     </div>
-    <div style="text-align:left;margin-top:8px"><button onclick="closeAuth()" style="background:transparent;color:var(--accent);border:none;cursor:pointer">إغلاق</button></div>
+    <div style="text-align:center; margin-top:15px">
+      <button onclick="closeAuth()" style="background:transparent;color:var(--muted);border:none;cursor:pointer;font-size:14px">
+        إغلاق النافذة
+      </button>
+    </div>
   `;
   
   backdrop.appendChild(modal);
@@ -958,9 +1105,11 @@ function doSignUp(){
   const insta=document.getElementById('regInsta').value.trim();
   const email=document.getElementById('regEmail').value.trim().toLowerCase();
   const pass=document.getElementById('regPass').value;
+  const passConfirm=document.getElementById('regPassConfirm').value;
 
   if(!name||!email||!pass){ showAlert('املأ الاسم والبريد وكلمة المرور','error'); return; }
   if(pass.length < 6){ showAlert('كلمة المرور يجب أن تكون 6 أحرف على الأقل','error'); return; }
+  if(pass !== passConfirm){ showAlert('كلمات المرور غير متطابقة','error'); return; }
 
   const users=getUsers();
   if(users[email]){ showAlert('هذا الإيميل مسجل سابقاً. حاول تسجيل الدخول.','error'); return; }
@@ -972,14 +1121,17 @@ function doSignUp(){
     password: encryptPassword(pass),
     orders: [],
     createdAt: Date.now(),
-    passwordChanged: Date.now()
+    passwordChanged: Date.now(),
+    securityQuestion: null,
+    securityAnswer: null
   };
   
   saveUsers(users);
   localStorage.setItem('mr_current', email);
   setCurrentUser(users[email]);
+  loadProfileImage();
   closeAuth();
-  showAlert('تم التسجيل وتسجيل الدخول بنجاح','success');
+  showAlert('تم التسجيل وتسجيل الدخول بنجاح', 'success');
   updateQuickHistory();
 }
 
@@ -997,6 +1149,7 @@ function doLogin(){
 
   localStorage.setItem('mr_current', email);
   setCurrentUser(users[email]);
+  loadProfileImage();
   closeAuth();
   showAlert('تم تسجيل الدخول بنجاح','success');
   updateQuickHistory();
@@ -1017,13 +1170,381 @@ function setCurrentUser(userObj){
   document.getElementById('headerAuthBtn').style.display='none';
   document.getElementById('headerUserMenu').style.display='flex';
   const firstLetter = (userObj.username||'U').trim().slice(0,1).toUpperCase();
-  document.getElementById('headerUserAvatar').textContent = firstLetter;
+  document.getElementById('headerUserAvatarFallback').textContent = firstLetter;
   document.getElementById('headerUserName').textContent = userObj.username;
 }
 
 function toggleHeaderDropdown(){
   const dropdown = document.getElementById('headerDropdown');
   dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+}
+
+/* ================= SECURITY QUESTION SYSTEM ================= */
+function setupSecurityQuestion() {
+  closeProfile();
+  
+  const backdrop = document.createElement('div');
+  backdrop.className='modal-backdrop';
+  backdrop.id='securityBackdrop';
+  
+  const modal = document.createElement('div');
+  modal.className='modal';
+  modal.style.maxWidth = '500px';
+  
+  modal.innerHTML = `
+    <h3 style="color: #00d4aa; margin-bottom: 20px; text-align: center;">🔒 إعداد سؤال أمان</h3>
+    
+    <div style="background: rgba(0, 212, 170, 0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #00d4aa;">
+      <p style="margin: 0; color: #fff; font-weight: 700;">سؤال الأمان يساعدك على استعادة حسابك إذا نسيت كلمة المرور</p>
+      <p style="margin: 10px 0 0 0; color: #99a3b3; font-size: 14px;">اختر سؤالاً تعرف إجابته فقط ولا يمكن لأحد آخر معرفتها</p>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 10px; font-weight: 700; color: var(--accent);">اختر سؤال أمان:</label>
+      <div id="questionOptions">
+        <div class="security-option" onclick="selectQuestion(this, 'ما اسم مدرستك الابتدائية؟')">ما اسم مدرستك الابتدائية؟</div>
+        <div class="security-option" onclick="selectQuestion(this, 'ما اسم حيوانك الأليف الأول؟')">ما اسم حيوانك الأليف الأول؟</div>
+        <div class="security-option" onclick="selectQuestion(this, 'ما هو اسم والدتك قبل الزواج؟')">ما هو اسم والدتك قبل الزواج؟</div>
+        <div class="security-option" onclick="selectQuestion(this, 'ما هي مدينة ميلادك؟')">ما هي مدينة ميلادك؟</div>
+        <div class="security-option" onclick="selectQuestion(this, 'ما هو طعامك المفضل؟')">ما هو طعامك المفضل؟</div>
+        <div class="security-option" onclick="showCustomQuestionInput()">✏️ سؤال مخصص</div>
+      </div>
+    </div>
+    
+    <div id="customQuestionSection" style="display: none; margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 10px; font-weight: 700; color: var(--accent);">اكتب سؤالك المخصص:</label>
+      <input type="text" id="customQuestionInput" 
+             placeholder="أدخل سؤال الأمان الخاص بك"
+             style="width: 100%; padding: 12px; background: #0f1724; border: 1px solid #4da3ff; border-radius: 8px; color: #fff; font-size: 16px;">
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 10px; font-weight: 700; color: var(--accent);">الإجابة على سؤال الأمان:</label>
+      <input type="text" id="securityAnswerInput" 
+             placeholder="أدخل إجابة سؤال الأمان"
+             style="width: 100%; padding: 12px; background: #0f1724; border: 1px solid #4da3ff; border-radius: 8px; color: #fff; font-size: 16px;">
+    </div>
+    
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+      <button onclick="saveSecuritySettings()" 
+              style="flex: 1; background: #00d4aa; color: #000; font-weight: 900; padding: 15px; border-radius: 10px; border: none; cursor: pointer; font-size: 16px;">
+        💾 حفظ سؤال الأمان
+      </button>
+      <button onclick="closeSecurityModal()" 
+              style="flex: 1; background: transparent; color: var(--accent); border: 2px solid var(--accent); padding: 15px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 16px;">
+        إلغاء
+      </button>
+    </div>
+    
+    <div style="margin-top: 20px; background: rgba(255, 215, 0, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid #ffd700;">
+      <p style="margin: 0; color: #ffd700; font-weight: 700;">💡 نصائح مهمة:</p>
+      <ul style="margin: 10px 0 0 0; padding-right: 20px; color: #fff; font-size: 14px;">
+        <li>اختر سؤالاً لا يعرفه إلا أنت</li>
+        <li>استخدم إجابة يسهل تذكرها</li>
+        <li>يمكنك تغيير السؤال والإجابة لاحقاً</li>
+        <li>بدون سؤال أمان، لا يمكن استعادة الحساب</li>
+      </ul>
+    </div>
+  `;
+  
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+  backdrop.style.display='flex';
+  
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) closeSecurityModal();
+  });
+  
+  window.selectedQuestion = '';
+  window.selectedQuestionElement = null;
+}
+
+function selectQuestion(element, question) {
+  if (window.selectedQuestionElement) {
+    window.selectedQuestionElement.classList.remove('selected');
+  }
+  
+  element.classList.add('selected');
+  window.selectedQuestionElement = element;
+  window.selectedQuestion = question;
+  
+  document.getElementById('customQuestionSection').style.display = 'none';
+}
+
+function showCustomQuestionInput() {
+  if (window.selectedQuestionElement) {
+    window.selectedQuestionElement.classList.remove('selected');
+  }
+  
+  window.selectedQuestionElement = null;
+  window.selectedQuestion = 'custom';
+  
+  document.getElementById('customQuestionSection').style.display = 'block';
+  
+  setTimeout(() => {
+    document.getElementById('customQuestionInput').focus();
+  }, 100);
+}
+
+function saveSecuritySettings() {
+  const users = getUsers();
+  const currentEmail = localStorage.getItem('mr_current');
+  
+  if (!currentEmail || !users[currentEmail]) {
+    showAlert('لم يتم تسجيل الدخول', 'error');
+    return;
+  }
+  
+  let question = window.selectedQuestion;
+  let answer = document.getElementById('securityAnswerInput').value.trim();
+  
+  if (!question) {
+    showAlert('يرجى اختيار سؤال أمان', 'error');
+    return;
+  }
+  
+  if (question === 'custom') {
+    question = document.getElementById('customQuestionInput').value.trim();
+    if (!question) {
+      showAlert('يرجى إدخال سؤال مخصص', 'error');
+      return;
+    }
+  }
+  
+  if (!answer) {
+    showAlert('يرجى إدخال إجابة سؤال الأمان', 'error');
+    return;
+  }
+  
+  if (answer.length < 2) {
+    showAlert('الإجابة قصيرة جداً، يرجى إدخال إجابة واضحة', 'error');
+    return;
+  }
+  
+  users[currentEmail].securityQuestion = question;
+  users[currentEmail].securityAnswer = answer.toLowerCase();
+  
+  saveUsers(users);
+  
+  showAlert('تم حفظ سؤال الأمان بنجاح! يمكنك الآن استخدامه لاستعادة الحساب إذا نسيت كلمة المرور.', 'success');
+  
+  setTimeout(() => {
+    closeSecurityModal();
+  }, 1500);
+}
+
+function closeSecurityModal() {
+  const backdrop = document.getElementById('securityBackdrop');
+  if (backdrop) {
+    backdrop.style.opacity = '0';
+    backdrop.style.transition = 'opacity 0.3s';
+    setTimeout(() => {
+      if (backdrop.parentNode) {
+        backdrop.remove();
+      }
+    }, 300);
+  }
+  
+  window.selectedQuestion = '';
+  window.selectedQuestionElement = null;
+}
+
+/* ================= PASSWORD RECOVERY SYSTEM ================= */
+function openPasswordRecovery() {
+  const existingBackdrop = document.getElementById('authBackdrop');
+  if (existingBackdrop) existingBackdrop.remove();
+  
+  const backdrop = document.createElement('div');
+  backdrop.className='modal-backdrop';
+  backdrop.id='recoveryBackdrop';
+  
+  const modal = document.createElement('div');
+  modal.className='modal';
+  modal.style.maxWidth = '500px';
+  
+  modal.innerHTML = `
+    <h3 style="color: #ffd700; margin-bottom: 20px; text-align: center;">🔓 استعادة كلمة المرور</h3>
+    
+    <div style="background: rgba(255, 215, 0, 0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #ffd700;">
+      <p style="margin: 0; color: #ffd700; font-weight: 700;">خطوات استعادة الحساب:</p>
+      <ol style="margin: 10px 0 0 0; padding-right: 20px; color: #fff;">
+        <li>أدخل بريدك الإلكتروني المسجل</li>
+        <li>أجب على سؤال الأمان</li>
+        <li>قم بإدخال كلمة مرور جديدة</li>
+      </ol>
+    </div>
+    
+    <div id="step1" style="margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 10px; font-weight: 700; color: var(--accent);">البريد الإلكتروني:</label>
+      <input type="email" id="recoveryEmailInput" 
+             placeholder="أدخل بريدك الإلكتروني المسجل"
+             style="width: 100%; padding: 12px; background: #0f1724; border: 1px solid #4da3ff; border-radius: 8px; color: #fff; font-size: 16px;">
+    </div>
+    
+    <div id="step2" style="display: none; margin-bottom: 20px;">
+      <div style="background: rgba(0, 212, 170, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+        <p style="margin: 0; color: #00d4aa; font-weight: 700; margin-bottom: 5px;">سؤال الأمان:</p>
+        <p id="recoveryQuestionText" style="margin: 0; color: #fff; font-size: 18px; font-weight: 700;"></p>
+      </div>
+      
+      <label style="display: block; margin-bottom: 10px; font-weight: 700; color: var(--accent);">الإجابة:</label>
+      <input type="text" id="recoveryAnswerInput" 
+             placeholder="أدخل إجابة سؤال الأمان"
+             style="width: 100%; padding: 12px; background: #0f1724; border: 1px solid #4da3ff; border-radius: 8px; color: #fff; font-size: 16px;">
+    </div>
+    
+    <div id="step3" style="display: none; margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 10px; font-weight: 700; color: var(--accent);">كلمة المرور الجديدة:</label>
+      <input type="password" id="recoveryNewPassword" 
+             placeholder="كلمة المرور الجديدة (6 أحرف على الأقل)"
+             style="width: 100%; padding: 12px; background: #0f1724; border: 1px solid #4da3ff; border-radius: 8px; color: #fff; font-size: 16px; margin-bottom: 15px;">
+      
+      <label style="display: block; margin-bottom: 10px; font-weight: 700; color: var(--accent);">تأكيد كلمة المرور:</label>
+      <input type="password" id="recoveryConfirmPassword" 
+             placeholder="أعد إدخال كلمة المرور الجديدة"
+             style="width: 100%; padding: 12px; background: #0f1724; border: 1px solid #4da3ff; border-radius: 8px; color: #fff; font-size: 16px;">
+    </div>
+    
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+      <button onclick="recoveryNextStep()" id="recoveryActionBtn"
+              style="flex: 1; background: #00d4aa; color: #000; font-weight: 900; padding: 15px; border-radius: 10px; border: none; cursor: pointer; font-size: 16px;">
+        التالي
+      </button>
+      <button onclick="closeRecoveryModal()" 
+              style="flex: 1; background: transparent; color: var(--accent); border: 2px solid var(--accent); padding: 15px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 16px;">
+        إلغاء
+      </button>
+    </div>
+    
+    <div style="margin-top: 20px; background: rgba(255, 68, 68, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid #ff4444;">
+      <p style="margin: 0; color: #ff4444; font-weight: 700;">⚠️ ملاحظة هامة:</p>
+      <p style="margin: 10px 0 0 0; color: #fff; font-size: 14px;">
+        إذا لم تكن قد قمت بإعداد سؤال أمان، فلن تتمكن من استعادة الحساب. 
+        في هذه الحالة، يمكنك إنشاء حساب جديد.
+      </p>
+    </div>
+  `;
+  
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+  backdrop.style.display='flex';
+  
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) closeRecoveryModal();
+  });
+  
+  window.recoveryStep = 1;
+  window.recoveryUserEmail = '';
+}
+
+function recoveryNextStep() {
+  const users = getUsers();
+  
+  if (window.recoveryStep === 1) {
+    const email = document.getElementById('recoveryEmailInput').value.trim().toLowerCase();
+    
+    if (!email) {
+      showAlert('يرجى إدخال البريد الإلكتروني', 'error');
+      return;
+    }
+    
+    if (!users[email]) {
+      showAlert('هذا البريد غير مسجل في النظام', 'error');
+      return;
+    }
+    
+    const user = users[email];
+    
+    if (!user.securityQuestion || !user.securityAnswer) {
+      showAlert('لم يتم إعداد سؤال أمان لهذا الحساب. لا يمكن استعادة كلمة المرور.', 'error');
+      
+      setTimeout(() => {
+        closeRecoveryModal();
+        openAuth();
+        showSignUp();
+        showAlert('يمكنك إنشاء حساب جديد وتذكر إعداد سؤال أمان هذه المرة', 'info', 5000);
+      }, 2000);
+      return;
+    }
+    
+    window.recoveryUserEmail = email;
+    window.recoveryStep = 2;
+    
+    document.getElementById('step1').style.display = 'none';
+    document.getElementById('step2').style.display = 'block';
+    document.getElementById('recoveryQuestionText').textContent = user.securityQuestion;
+    document.getElementById('recoveryActionBtn').textContent = 'التحقق من الإجابة';
+    
+  } else if (window.recoveryStep === 2) {
+    const answer = document.getElementById('recoveryAnswerInput').value.trim().toLowerCase();
+    
+    if (!answer) {
+      showAlert('يرجى إدخال إجابة سؤال الأمان', 'error');
+      return;
+    }
+    
+    const user = users[window.recoveryUserEmail];
+    const savedAnswer = user.securityAnswer.toLowerCase();
+    
+    if (answer !== savedAnswer) {
+      showAlert('الإجابة غير صحيحة، حاول مرة أخرى', 'error');
+      return;
+    }
+    
+    window.recoveryStep = 3;
+    
+    document.getElementById('step2').style.display = 'none';
+    document.getElementById('step3').style.display = 'block';
+    document.getElementById('recoveryActionBtn').textContent = 'تغيير كلمة المرور';
+    
+  } else if (window.recoveryStep === 3) {
+    const newPass = document.getElementById('recoveryNewPassword').value;
+    const confirmPass = document.getElementById('recoveryConfirmPassword').value;
+    
+    if (!newPass || !confirmPass) {
+      showAlert('يرجى ملء جميع الحقول', 'error');
+      return;
+    }
+    
+    if (newPass.length < 6) {
+      showAlert('كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error');
+      return;
+    }
+    
+    if (newPass !== confirmPass) {
+      showAlert('كلمات المرور غير متطابقة', 'error');
+      return;
+    }
+    
+    const user = users[window.recoveryUserEmail];
+    user.password = encryptPassword(newPass);
+    user.passwordChanged = Date.now();
+    
+    saveUsers(users);
+    
+    showAlert('🎉 تم تغيير كلمة المرور بنجاح! يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.', 'success');
+    
+    setTimeout(() => {
+      closeRecoveryModal();
+      openAuth();
+    }, 2000);
+  }
+}
+
+function closeRecoveryModal() {
+  const backdrop = document.getElementById('recoveryBackdrop');
+  if (backdrop) {
+    backdrop.style.opacity = '0';
+    backdrop.style.transition = 'opacity 0.3s';
+    setTimeout(() => {
+      if (backdrop.parentNode) {
+        backdrop.remove();
+      }
+    }, 300);
+  }
+  
+  window.recoveryStep = 1;
+  window.recoveryUserEmail = '';
 }
 
 /* ================= PASSWORD CHANGE ================= */
@@ -1037,7 +1558,7 @@ function openChangePassword(){
   modal.style.maxWidth = '420px';
   
   modal.innerHTML = `
-    <h3 style="color: #00ffcc; margin-bottom: 20px;">🔐 تغيير كلمة المرور</h3>
+    <h3 style="color: #00ffcc; margin-bottom: 20px; text-align: center;">🔐 تغيير كلمة المرور</h3>
     
     <div class="form-row">
       <label>كلمة المرور الحالية:</label>
@@ -1069,12 +1590,20 @@ function openChangePassword(){
     
     <div style="display: flex; gap: 10px; margin-top: 15px;">
       <button onclick="saveNewPassword()" 
-              style="flex: 1; background: #00d4aa; color: black; font-weight: 900;">
+              style="flex: 1; background: #00d4aa; color: black; font-weight: 900; padding: 12px; border-radius: 10px; border: none; cursor: pointer;">
         حفظ التغييرات
       </button>
       <button onclick="closeChangePassword()" 
-              style="flex: 1; background: transparent; color: var(--accent); border: 1px solid var(--accent);">
+              style="flex: 1; background: transparent; color: var(--accent); border: 2px solid var(--accent); padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 700;">
         إلغاء
+      </button>
+    </div>
+    
+    <div style="margin-top: 15px; text-align: center;">
+      <button onclick="openPasswordRecovery()" 
+              style="background: transparent; color: #ffd700; border: none; 
+                     cursor: pointer; font-size: 14px; text-decoration: underline;">
+        نسيت كلمة المرور؟
       </button>
     </div>
   `;
@@ -1088,7 +1617,15 @@ function openChangePassword(){
 
 function closeChangePassword(){
   const backdrop=document.getElementById('passwordBackdrop');
-  if(backdrop) backdrop.remove();
+  if(backdrop) {
+    backdrop.style.opacity = '0';
+    backdrop.style.transition = 'opacity 0.3s';
+    setTimeout(() => {
+      if (backdrop.parentNode) {
+        backdrop.remove();
+      }
+    }, 300);
+  }
 }
 
 function saveNewPassword(){
@@ -1160,14 +1697,20 @@ function buildProfilePanel(){
   
   const me = users[key];
   const firstLetter = (me.username||'U').slice(0,1).toUpperCase();
-  document.getElementById('profileAvatar').textContent = firstLetter;
+  
+  loadProfileImage();
+  
+  document.getElementById('profileAvatarFallback').textContent = firstLetter;
   document.getElementById('profileName').textContent = me.username;
   document.getElementById('profileInsta').textContent = me.insta || '-';
   document.getElementById('profileEmail').textContent = me.email;
+  
+  const joinDate = me.createdAt ? new Date(me.createdAt).toLocaleDateString('ar-SA') : 'غير معروف';
+  document.getElementById('profileMemberSince').textContent = `عضو منذ: ${joinDate}`;
+  
   document.getElementById('editName').value = me.username;
   document.getElementById('editInsta').value = me.insta || '';
   
-  // عرض الطلبات
   const ordersList = document.getElementById('ordersList');
   ordersList.innerHTML = '';
   
@@ -1205,20 +1748,15 @@ function useOrderAgain(orderIndex){
   
   const order = orders[orderIndex];
   
-  // محاولة تحليل الطلب
   try {
     const lines = order.body.split('\n');
     
-    // استخراج البيانات
     const categoryLine = lines.find(l => l.includes('القسم:'));
-    const gameLine = lines.find(l => l.includes('اللعبة:'));
-    const psnLine = lines.find(l => l.includes('نوع PSN:'));
     const userLine = lines.find(l => l.includes('اسم المستخدم/ID:'));
     const instaLine = lines.find(l => l.includes('إنستغرام:'));
     const emailLine = lines.find(l => l.includes('البريد الإلكتروني:'));
     const notesLine = lines.find(l => l.includes('ملاحظات:'));
     
-    // تعبئة البيانات
     if(categoryLine) {
       const category = categoryLine.split(':')[1]?.trim().toLowerCase();
       document.getElementById('category').value = category || '';
@@ -1329,6 +1867,7 @@ function initAuthUI(){
   if(key && users[key]){
     setCurrentUser(users[key]);
     currentUser = users[key];
+    loadProfileImage();
   }
 }
 
