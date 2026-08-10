@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZMOD.JO</title>
+    <title>ZMOD.JO - متجر بطاقات الألعاب</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -102,8 +102,62 @@
             from { opacity: 0; transform: translateX(-50%) translateY(20px); }
             to { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
-        .price-tag {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .points-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .points-badge:hover {
+            transform: scale(1.05);
+        }
+        .settings-btn {
+            background: #4a5568;
+            padding: 8px 14px;
+            border-radius: 12px;
+            color: white;
+            transition: all 0.2s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .settings-btn:hover {
+            background: #2d3748;
+            transform: scale(1.05);
+        }
+        .points-package {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .points-package:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+        }
+        .points-package.selected {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            transform: scale(1.02);
+        }
+        .use-points-toggle {
+            transition: all 0.3s;
+        }
+        .use-points-toggle.active {
+            background: #3b82f6;
+            color: white;
+        }
+        .order-status-badge {
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -159,6 +213,19 @@
             </div>
         </div>
 
+        <!-- Points Purchase Modal -->
+        <div id="pointsModal" class="fixed inset-0 bg-black/50 modal-backdrop flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-3xl max-w-md w-full mx-4 p-6 shadow-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-gray-800">🪙 شراء نقاط</h3>
+                    <button onclick="closePointsModal()" class="text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+                </div>
+                <div id="pointsModalBody" class="space-y-4">
+                    <!-- Points packages will be injected here -->
+                </div>
+            </div>
+        </div>
+
         <!-- Auth Modal -->
         <div id="authModal" class="fixed inset-0 bg-black/50 modal-backdrop flex items-center justify-center z-50 hidden">
             <div class="bg-white rounded-3xl max-w-md w-full mx-4 p-6 shadow-2xl">
@@ -177,6 +244,20 @@
             <i class="fas fa-check-circle text-green-400 ml-2"></i> <span id="toastMsg">تم حفظ الطلب</span>
         </div>
     </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-12">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="text-center md:text-right">
+                    <p class="text-sm text-gray-400">© 2026 ZMOD.JO - جميع الحقوق محفوظة</p>
+                </div>
+                <button onclick="openPointsModal()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-xl font-bold transition transform hover:scale-105 shadow-lg">
+                    <i class="fas fa-coins ml-2"></i> طلب شحن نقاط
+                </button>
+            </div>
+        </div>
+    </footer>
 
     <script>
         // ================================================================
@@ -207,29 +288,30 @@
                 regions: {
                     "المتجر السعودي": {
                         prices: [
-                            { label: "10$", price: 8.20 },
-                            { label: "20$", price: 15.55 },
+                            { label: "10$", price: 8.50 },
+                            { label: "20$", price: 16.00 },
+                            { label: "30$", price: 23.50 },
                             { label: "40$", price: 31.00 },
                             { label: "50$", price: 38.50 },
-                            { label: "60$", price: 45.95 }
+                            { label: "60$", price: 46.00 }
                         ]
                     },
                     "المتجر الأمريكي": {
                         prices: [
-                            { label: "5$", price: 4.75 },
-                            { label: "10$", price: 8.00 },
-                            { label: "25$", price: 19.25 },
-                            { label: "50$", price: 36.50 },
-                            { label: "75$", price: 55.75 }
+                            { label: "5$", price: 4.25 },
+                            { label: "10$", price: 8.50 },
+                            { label: "25$", price: 21.25 },
+                            { label: "50$", price: 42.50 },
+                            { label: "75$", price: 63.75 }
                         ]
                     },
                     "المتجر القطري": {
                         prices: [
-                            { label: "10$", price: 8.50 },
-                            { label: "20$", price: 16.65 },
-                            { label: "40$", price: 33.20 },
-                            { label: "50$", price: 39.50 },
-                            { label: "60$", price: 47.00 }
+                            { label: "10$", price: 9.50 },
+                            { label: "20$", price: 18.00 },
+                            { label: "40$", price: 35.00 },
+                            { label: "50$", price: 43.50 },
+                            { label: "60$", price: 52.00 }
                         ]
                     }
                 }
@@ -241,11 +323,11 @@
                 regions: {
                     "المتجر الأمريكي": {
                         prices: [
-                            { label: "5$", price: 4.25 },
-                            { label: "10$", price: 8.40 },
-                            { label: "15$", price: 12.65 },
-                            { label: "20$", price: 16.80 },
-                            { label: "25$", price: 20.50 }
+                            { label: "5$", price: 4.50 },
+                            { label: "10$", price: 9.00 },
+                            { label: "15$", price: 13.50 },
+                            { label: "20$", price: 18.00 },
+                            { label: "25$", price: 22.50 }
                         ]
                     }
                 }
@@ -257,10 +339,10 @@
                 regions: {
                     "المتجر الأمريكي": {
                         prices: [
-                            { label: "10$", price: 8.50 },
-                            { label: "20$", price: 16.50 },
-                            { label: "35$", price: 27.00 },
-                            { label: "50$", price: 37.75 }
+                            { label: "10$", price: 9.50 },
+                            { label: "20$", price: 18.50 },
+                            { label: "35$", price: 32.00 },
+                            { label: "50$", price: 45.00 }
                         ]
                     }
                 }
@@ -272,11 +354,11 @@
                 regions: {
                     "جواهر": {
                         prices: [
-                            { label: "100", price: 0.85 },
-                            { label: "210", price: 1.80 },
-                            { label: "530", price: 3.90 },
-                            { label: "1080", price: 13.00 },
-                            { label: "2200", price: 19.55 }
+                            { label: "100", price: 1.50 },
+                            { label: "210", price: 3.00 },
+                            { label: "530", price: 7.50 },
+                            { label: "1080", price: 15.00 },
+                            { label: "2200", price: 28.00 }
                         ]
                     }
                 }
@@ -288,11 +370,11 @@
                 regions: {
                     "UC": {
                         prices: [
-                            { label: "30UC", price: 0.65 },
-                            { label: "60UC", price: 0.85 },
-                            { label: "325UC", price: 4.50 },
-                            { label: "1800UC", price: 23.00 },
-                            { label: "3850UC", price: 45.90 }
+                            { label: "30UC", price: 0.75 },
+                            { label: "60UC", price: 1.50 },
+                            { label: "325UC", price: 7.50 },
+                            { label: "1800UC", price: 35.00 },
+                            { label: "3850UC", price: 65.00 }
                         ]
                     }
                 }
@@ -304,9 +386,9 @@
                 regions: {
                     "Robux": {
                         prices: [
-                            { label: "800", price: 9.00 },
-                            { label: "2000", price: 20.00 },
-                            { label: "4500", price: 40.00 }
+                            { label: "800", price: 12.00 },
+                            { label: "2000", price: 28.00 },
+                            { label: "4500", price: 55.00 }
                         ]
                     }
                 }
@@ -314,17 +396,56 @@
         };
 
         // ================================================================
-        // 3. STATE
+        // 3. POINTS SYSTEM CONFIGURATION
+        // ================================================================
+        const POINTS_PACKAGES = [
+            { points: 10, price: 1.00, description: "⭐ حزمة صغيرة" },
+            { points: 25, price: 2.50, description: "🔥 حزمة متوسطة" },
+            { points: 50, price: 5.00, description: "💰 حزمة كبيرة" },
+            { points: 100, price: 9.50, description: "💎 حزمة VIP" }
+        ];
+
+        // ================================================================
+        // 4. STATE
         // ================================================================
         let currentUser = null;
         let currentGameKey = null;
         let selectedRegion = null;
         let selectedPrice = null;
         let selectedPriceValue = null;
-        let currentAuthMode = 'login'; // 'login' | 'signup'
+        let currentAuthMode = 'login';
+        let userPoints = 0;
+        let usePoints = false;
 
         // ================================================================
-        // 4. AUTH FUNCTIONS
+        // 5. POINTS FUNCTIONS
+        // ================================================================
+        async function loadUserPoints(userId) {
+            try {
+                const userDoc = await db.collection('users').doc(userId).get();
+                if (userDoc.exists) {
+                    userPoints = userDoc.data().points || 0;
+                } else {
+                    userPoints = 0;
+                }
+                updatePointsDisplay();
+                return userPoints;
+            } catch (error) {
+                console.error('Error loading points:', error);
+                userPoints = 0;
+                return 0;
+            }
+        }
+
+        function updatePointsDisplay() {
+            const pointsDisplay = document.getElementById('pointsDisplay');
+            if (pointsDisplay) {
+                pointsDisplay.innerHTML = `🪙 ${userPoints} نقطة`;
+            }
+        }
+
+        // ================================================================
+        // 6. AUTH FUNCTIONS
         // ================================================================
         function toggleAuthModal() {
             const modal = document.getElementById('authModal');
@@ -429,6 +550,7 @@
             updateUI();
             toggleAuthModal();
             showToast(`✅ مرحباً ${user.displayName || 'زائر'}!`);
+            
             // Save user info to Firestore
             if (user.uid) {
                 db.collection('users').doc(user.uid).set({
@@ -437,13 +559,16 @@
                     email: user.email || 'anonymous',
                     provider: user.providerData[0]?.providerId || 'anonymous',
                     lastLogin: new Date().toISOString()
-                }, { merge: true }).catch(err => console.error('Error saving user:', err));
+                }, { merge: true }).then(() => {
+                    loadUserPoints(user.uid);
+                }).catch(err => console.error('Error saving user:', err));
             }
         }
 
         function signOut() {
             auth.signOut().then(() => {
                 currentUser = null;
+                userPoints = 0;
                 updateUI();
                 showToast('تم تسجيل الخروج بنجاح');
             });
@@ -453,14 +578,18 @@
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUser = user;
+                if (user.uid) {
+                    loadUserPoints(user.uid);
+                }
             } else {
                 currentUser = null;
+                userPoints = 0;
             }
             updateUI();
         });
 
         // ================================================================
-        // 5. UI UPDATE
+        // 7. UI UPDATE
         // ================================================================
         function updateUI() {
             const section = document.getElementById('userSection');
@@ -472,6 +601,9 @@
                 section.innerHTML = `
                     <img src="${photo}" alt="${name}" class="user-avatar border-2 border-blue-400">
                     <span class="text-sm font-semibold hidden md:inline">${name}</span>
+                    <div class="points-badge" onclick="showPointsInfo()">
+                        🪙 ${userPoints} نقطة
+                    </div>
                     <button onclick="signOut()" class="text-xs bg-red-600/20 hover:bg-red-600/30 text-red-300 px-3 py-1 rounded-full transition">
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
@@ -480,15 +612,27 @@
                 btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
                 btn.classList.add('bg-green-600', 'hover:bg-green-700');
             } else {
-                section.innerHTML = '';
+                section.innerHTML = `
+                    <div class="points-badge" onclick="showPointsInfo()">
+                        🪙 0 نقطة
+                    </div>
+                `;
                 btn.innerHTML = `<i class="fas fa-user ml-1"></i> تسجيل الدخول`;
                 btn.classList.remove('bg-green-600', 'hover:bg-green-700');
                 btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
             }
         }
 
+        function showPointsInfo() {
+            if (userPoints > 0) {
+                showToast(`🪙 رصيدك الحالي: ${userPoints} نقطة`);
+            } else {
+                showToast('🪙 ليس لديك نقاط حالياً');
+            }
+        }
+
         // ================================================================
-        // 6. RENDER GAMES
+        // 8. RENDER GAMES
         // ================================================================
         function renderGames() {
             const grid = document.getElementById('gamesGrid');
@@ -512,7 +656,7 @@
         }
 
         // ================================================================
-        // 7. ORDER MODAL
+        // 9. ORDER MODAL
         // ================================================================
         function openGame(gameKey) {
             if (!currentUser) {
@@ -547,6 +691,31 @@
                     <span id="totalPriceDisplay" class="text-xl font-bold text-blue-600">0.00 د.أ</span>
                 </div>
             `;
+
+            // Points section
+            html += `<div id="pointsSection" class="mb-3 p-3 bg-yellow-50 rounded-xl border border-yellow-200">`;
+            if (userPoints > 0) {
+                html += `
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-semibold text-gray-700">🪙 استخدام النقاط للخصم</span>
+                        <button id="usePointsToggle" class="use-points-toggle px-4 py-1 rounded-full text-sm font-semibold bg-gray-200 text-gray-600" onclick="toggleUsePoints()">
+                            غير مفعل
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">لديك ${userPoints} نقطة (كل نقطة = 0.10 د.أ)</p>
+                    <div id="pointsDiscountDisplay" class="text-xs text-green-600 font-semibold mt-1 hidden">
+                        سيتم خصم 0.00 د.أ
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="text-center">
+                        <p class="text-sm text-gray-600">🪙 You don't have any points</p>
+                        <a onclick="closeModal(); openPointsModal();" class="text-xs text-blue-600 hover:underline cursor-pointer">شراء نقاط</a>
+                    </div>
+                `;
+            }
+            html += `</div>`;
 
             html += `
                 <div class="space-y-3 mt-4">
@@ -609,6 +778,7 @@
             selectedPrice = null;
             selectedPriceValue = null;
             document.getElementById('totalPriceDisplay').textContent = '0.00 د.أ';
+            updatePointsDiscount();
         }
 
         function selectPrice(label, price) {
@@ -618,20 +788,168 @@
                 btn.classList.toggle('selected', btn.innerText.trim() === label);
             });
             
-            // Update total price display
             document.getElementById('totalPriceDisplay').textContent = price.toFixed(2) + ' د.أ';
+            updatePointsDiscount();
         }
 
         // ================================================================
-        // 8. ORDER ACTIONS
+        // 10. POINTS TOGGLE & DISCOUNT
+        // ================================================================
+        function toggleUsePoints() {
+            usePoints = !usePoints;
+            const btn = document.getElementById('usePointsToggle');
+            if (btn) {
+                if (usePoints) {
+                    btn.textContent = 'مفعل ✓';
+                    btn.classList.remove('bg-gray-200', 'text-gray-600');
+                    btn.classList.add('bg-green-500', 'text-white');
+                } else {
+                    btn.textContent = 'غير مفعل';
+                    btn.classList.remove('bg-green-500', 'text-white');
+                    btn.classList.add('bg-gray-200', 'text-gray-600');
+                }
+            }
+            updatePointsDiscount();
+        }
+
+        function updatePointsDiscount() {
+            const display = document.getElementById('pointsDiscountDisplay');
+            const totalDisplay = document.getElementById('totalPriceDisplay');
+            if (!display || !totalDisplay) return;
+
+            if (usePoints && userPoints > 0 && selectedPriceValue) {
+                const maxDiscount = Math.min(userPoints * 0.10, selectedPriceValue);
+                const discountedPrice = selectedPriceValue - maxDiscount;
+                display.classList.remove('hidden');
+                display.textContent = `🪙 خصم ${maxDiscount.toFixed(2)} د.أ | السعر بعد الخصم: ${discountedPrice.toFixed(2)} د.أ`;
+                totalDisplay.textContent = discountedPrice.toFixed(2) + ' د.أ';
+            } else {
+                display.classList.add('hidden');
+                if (selectedPriceValue) {
+                    totalDisplay.textContent = selectedPriceValue.toFixed(2) + ' د.أ';
+                }
+            }
+        }
+
+        // ================================================================
+        // 11. POINTS PURCHASE MODAL
+        // ================================================================
+        function openPointsModal() {
+            if (!currentUser) {
+                showToast('⚠️ الرجاء تسجيل الدخول أولاً');
+                toggleAuthModal();
+                return;
+            }
+
+            const modal = document.getElementById('pointsModal');
+            const body = document.getElementById('pointsModalBody');
+            
+            let html = `
+                <p class="text-center text-gray-600 mb-4">اختر الحزمة المناسبة لك</p>
+                <div class="grid grid-cols-2 gap-3">
+            `;
+            
+            POINTS_PACKAGES.forEach(pkg => {
+                html += `
+                    <div class="points-package bg-white border-2 border-gray-200 rounded-xl p-4 text-center hover:border-purple-400" onclick="selectPointsPackage('${pkg.points}', ${pkg.price})">
+                        <div class="text-3xl mb-2">🪙</div>
+                        <div class="font-bold text-lg">${pkg.points} نقطة</div>
+                        <div class="text-sm text-gray-500">${pkg.description}</div>
+                        <div class="text-lg font-bold text-purple-600 mt-1">${pkg.price.toFixed(2)} د.أ</div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                </div>
+                <div class="mt-4 space-y-3">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700">رقم الهاتف <span class="text-red-500">*</span></label>
+                        <input id="pointsPhone" type="tel" placeholder="مثال: 079xxxxxxxx" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-purple-400 outline-none">
+                    </div>
+                    <button onclick="submitPointsOrder()" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 rounded-xl font-bold transition">
+                        <i class="fas fa-shopping-cart ml-2"></i> طلب شحن نقاط
+                    </button>
+                </div>
+                <div class="text-xs text-gray-500 mt-2 text-center">سيتم إضافة النقاط لحسابك بعد تأكيد الدفع</div>
+            `;
+            
+            body.innerHTML = html;
+            modal.classList.remove('hidden');
+        }
+
+        let selectedPointsPackage = null;
+        let selectedPointsPrice = null;
+
+        function selectPointsPackage(points, price) {
+            selectedPointsPackage = points;
+            selectedPointsPrice = price;
+            document.querySelectorAll('.points-package').forEach(el => {
+                el.classList.remove('selected', 'border-purple-400', 'bg-purple-50');
+                if (el.textContent.includes(points.toString())) {
+                    el.classList.add('selected', 'border-purple-400', 'bg-purple-50');
+                }
+            });
+        }
+
+        async function submitPointsOrder() {
+            const phone = document.getElementById('pointsPhone').value.trim();
+            
+            if (!selectedPointsPackage) {
+                showToast('⚠️ الرجاء اختيار حزمة النقاط');
+                return;
+            }
+            if (!phone) {
+                showToast('⚠️ الرجاء إدخال رقم الهاتف');
+                return;
+            }
+
+            const orderData = {
+                type: 'points_purchase',
+                points: selectedPointsPackage,
+                price: selectedPointsPrice,
+                phone: phone,
+                userId: currentUser.uid,
+                userEmail: currentUser.email || 'anonymous',
+                status: 'قيد المراجعة',
+                createdAt: new Date().toISOString(),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                await db.collection('orders').add(orderData);
+                showToast(`✅ تم طلب ${selectedPointsPackage} نقطة بنجاح! سيتم إضافتها بعد التأكيد`);
+                closePointsModal();
+                selectedPointsPackage = null;
+                selectedPointsPrice = null;
+            } catch (error) {
+                showToast('⚠️ فشل حفظ الطلب: ' + error.message);
+            }
+        }
+
+        function closePointsModal() {
+            document.getElementById('pointsModal').classList.add('hidden');
+        }
+
+        // ================================================================
+        // 12. ORDER ACTIONS
         // ================================================================
         function sendWhatsApp() {
             if (!validateOrder()) return;
             const name = document.getElementById('customerName').value.trim();
             const id = document.getElementById('playerId').value.trim();
             const game = GAMES_DATA[currentGameKey];
-            const message = `مرحباً ZMOD.JO، أريد طلب: ${game.name} - ${selectedRegion} - الباقة: ${selectedPrice} - السعر: ${selectedPriceValue} د.أ - الاسم: ${name} - الأيدي: ${id}`;
-            window.open(`https://wa.me/962771934703?text=${encodeURIComponent(message)}`, '_blank');
+            
+            let finalPrice = selectedPriceValue;
+            let discountMessage = '';
+            if (usePoints && userPoints > 0) {
+                const discount = Math.min(userPoints * 0.10, selectedPriceValue);
+                finalPrice = selectedPriceValue - discount;
+                discountMessage = ` (بعد خصم ${discount.toFixed(2)} د.أ من النقاط)`;
+            }
+            
+            const message = `مرحباً ZMOD.JO، أريد طلب: ${game.name} - ${selectedRegion} - الباقة: ${selectedPrice} - السعر: ${finalPrice.toFixed(2)} د.أ${discountMessage} - الاسم: ${name} - الأيدي: ${id}`;
+            window.open(`https://wa.me/962777777777?text=${encodeURIComponent(message)}`, '_blank');
             showToast('تم التوجيه إلى واتساب');
         }
 
@@ -643,11 +961,24 @@
             const id = document.getElementById('playerId').value.trim();
             const game = GAMES_DATA[currentGameKey];
 
+            let finalPrice = selectedPriceValue;
+            let pointsUsed = 0;
+            let discountAmount = 0;
+            
+            if (usePoints && userPoints > 0) {
+                discountAmount = Math.min(userPoints * 0.10, selectedPriceValue);
+                finalPrice = selectedPriceValue - discountAmount;
+                pointsUsed = Math.ceil(discountAmount / 0.10);
+            }
+
             const orderData = {
                 game: game.name,
                 region: selectedRegion,
                 package: selectedPrice,
-                price: selectedPriceValue,
+                originalPrice: selectedPriceValue,
+                finalPrice: finalPrice,
+                discountAmount: discountAmount,
+                pointsUsed: pointsUsed,
                 customerName: name,
                 phone: phone,
                 playerId: id,
@@ -682,10 +1013,11 @@
         }
 
         // ================================================================
-        // 9. UI HELPERS
+        // 13. UI HELPERS
         // ================================================================
         function closeModal() {
             document.getElementById('orderModal').classList.add('hidden');
+            usePoints = false;
         }
 
         function showToast(msg) {
@@ -702,9 +1034,12 @@
         document.getElementById('authModal').addEventListener('click', function(e) {
             if (e.target === this) toggleAuthModal();
         });
+        document.getElementById('pointsModal').addEventListener('click', function(e) {
+            if (e.target === this) closePointsModal();
+        });
 
         // ================================================================
-        // 10. INIT
+        // 14. INIT
         // ================================================================
         renderGames();
         updateUI();
