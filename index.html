@@ -1,351 +1,713 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gaming Store · متجر الألعاب</title>
-  <!-- Tailwind via CDN + Readex Pro & Tajawal -->
-  <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;600;700&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome 6 (مجانية) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-  <style>
-    * { font-family: 'Tajawal', 'Readex Pro', sans-serif; }
-    body {
-      background: #0D0D0D;
-      color: #f1f1f1;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1.5rem;
-    }
-    /* تأثير الزجاج الشفاف (Glassmorphism) */
-    .glass {
-      background: rgba(18, 18, 18, 0.55);
-      backdrop-filter: blur(8px) saturate(180%);
-      -webkit-backdrop-filter: blur(8px) saturate(180%);
-      border: 1px solid rgba(212, 175, 55, 0.25);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-    }
-    .glass-card {
-      background: rgba(20, 20, 22, 0.6);
-      backdrop-filter: blur(12px) saturate(200%);
-      -webkit-backdrop-filter: blur(12px) saturate(200%);
-      border: 1px solid rgba(212, 175, 55, 0.2);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
-      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
-    .glass-card:hover {
-      transform: translateY(-10px) scale(1.01);
-      border-color: #D4AF37;
-      box-shadow: 0 20px 50px rgba(212, 175, 55, 0.25), 0 0 30px rgba(212, 175, 55, 0.1);
-      background: rgba(28, 28, 32, 0.75);
-    }
-    /* حدود ذهبية ناعمة */
-    .border-gold {
-      border-color: #D4AF37;
-    }
-    .text-gold {
-      color: #D4AF37;
-    }
-    .bg-gold-soft {
-      background: rgba(212, 175, 55, 0.12);
-    }
-    /* أزرار نيون أزرق */
-    .btn-neon {
-      background: #00B4D8;
-      color: white;
-      font-weight: 700;
-      padding: 0.5rem 1.5rem;
-      border-radius: 9999px;
-      transition: all 0.2s ease;
-      box-shadow: 0 0 20px rgba(0, 180, 216, 0.3);
-      border: none;
-      cursor: pointer;
-    }
-    .btn-neon:hover {
-      background: #0096c7;
-      transform: scale(1.02);
-      box-shadow: 0 0 40px #00B4D8;
-    }
-    .badge-neon {
-      background: #00B4D8;
-      color: white;
-      font-weight: 700;
-      padding: 0.25rem 1rem;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      letter-spacing: 0.5px;
-      box-shadow: 0 0 12px rgba(0, 180, 216, 0.5);
-    }
-    /* شريط البحث */
-    .search-bar {
-      background: rgba(18, 18, 18, 0.7);
-      backdrop-filter: blur(4px);
-      border: 1px solid rgba(212, 175, 55, 0.3);
-      border-radius: 60px;
-      padding: 0.5rem 1.5rem;
-      color: white;
-      width: 220px;
-      transition: all 0.2s;
-    }
-    .search-bar:focus {
-      outline: none;
-      border-color: #D4AF37;
-      box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
-      width: 260px;
-    }
-    .search-bar::placeholder {
-      color: #aaa;
-      font-weight: 300;
-    }
-    /* أيقونات السلة والبحث */
-    .icon-gold {
-      color: #D4AF37;
-      transition: 0.2s;
-    }
-    .icon-gold:hover {
-      color: #ffd966;
-      transform: scale(1.1);
-    }
-    /* شبكة 2x2 استجابة */
-    .offers-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1.8rem;
-    }
-    @media (max-width: 640px) {
-      .offers-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-      }
-    }
-    /* تنسيق البطاقة */
-    .game-card {
-      border-radius: 28px;
-      padding: 1.8rem 1.5rem 1.8rem 1.5rem;
-      transition: all 0.3s ease;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      overflow: hidden;
-    }
-    .game-card::before {
-      content: '';
-      position: absolute;
-      top: -30%;
-      right: -20%;
-      width: 120px;
-      height: 120px;
-      background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
-      border-radius: 50%;
-      pointer-events: none;
-    }
-    .game-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      margin-bottom: 0.2rem;
-      color: #f5f5f5;
-    }
-    .game-sub {
-      font-weight: 300;
-      color: #bbbbbb;
-      font-size: 0.9rem;
-      border-right: 2px solid #D4AF37;
-      padding-right: 0.7rem;
-    }
-    .price-tag {
-      font-size: 1.9rem;
-      font-weight: 800;
-      color: white;
-      background: rgba(0, 180, 216, 0.15);
-      padding: 0.2rem 1.2rem;
-      border-radius: 60px;
-      display: inline-block;
-      backdrop-filter: blur(4px);
-      border: 1px solid rgba(0, 180, 216, 0.2);
-    }
-    /* تأثير hover إضافي */
-    .game-card:hover .game-title {
-      color: #D4AF37;
-    }
-    .game-card:hover .price-tag {
-      background: rgba(0, 180, 216, 0.3);
-      border-color: #00B4D8;
-      box-shadow: 0 0 30px rgba(0, 180, 216, 0.3);
-    }
-    /* سلة و header */
-    .cart-badge {
-      background: #D4AF37;
-      color: #0D0D0D;
-      font-weight: 800;
-      border-radius: 50%;
-      padding: 0.1rem 0.5rem;
-      font-size: 0.75rem;
-      margin-right: -0.3rem;
-    }
-    /* footer قسم الدفع */
-    .payment-section {
-      background: rgba(10, 10, 12, 0.7);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(212, 175, 55, 0.2);
-      border-radius: 60px;
-      padding: 0.8rem 2rem;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .payment-icon {
-      font-size: 1.8rem;
-      color: #D4AF37;
-      margin: 0 0.3rem;
-      opacity: 0.7;
-      transition: 0.2s;
-    }
-    .payment-icon:hover {
-      opacity: 1;
-      transform: scale(1.1);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZMOD.JO - متجر بطاقات الألعاب</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * { font-family: 'Cairo', sans-serif; }
+        .game-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .game-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 30px -10px rgba(0,0,0,0.3);
+        }
+        .region-tab {
+            transition: all 0.2s;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .region-tab.active {
+            background: #1e293b;
+            color: white;
+        }
+        .region-tab:not(.active):hover {
+            background: #e2e8f0;
+        }
+        .price-btn {
+            transition: all 0.15s;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+        }
+        .price-btn:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            transform: scale(1.02);
+        }
+        .price-btn.selected {
+            border-color: #3b82f6;
+            background: #dbeafe;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .whatsapp-btn {
+            background: #25D366;
+            color: white;
+        }
+        .whatsapp-btn:hover {
+            background: #128C7E;
+        }
+        .order-btn {
+            background: #3b82f6;
+            color: white;
+        }
+        .order-btn:hover {
+            background: #2563eb;
+        }
+        .modal-backdrop {
+            backdrop-filter: blur(6px);
+        }
+        .auth-btn {
+            transition: all 0.2s;
+        }
+        .auth-btn:hover {
+            transform: scale(1.05);
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: none;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        .price-tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
 </head>
-<body>
-  <div class="w-full max-w-6xl mx-auto">
-    <!-- الهيدر مع بحث وسلة -->
-    <header class="flex flex-wrap items-center justify-between gap-4 mb-8 glass rounded-full px-6 py-3">
-      <div class="flex items-center gap-3">
-        <i class="fas fa-gamepad text-3xl text-gold"></i>
-        <span class="text-2xl font-bold tracking-tight text-white">GAME<span class="text-gold">HUB</span></span>
-      </div>
-      
-      <div class="flex items-center gap-5 flex-wrap">
-        <!-- بحث -->
-        <div class="relative flex items-center">
-          <i class="fas fa-search absolute right-4 text-gold opacity-70"></i>
-          <input type="text" placeholder="ابحث عن لعبة..." class="search-bar pr-10" />
+<body class="bg-gray-50">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-gray-900 to-gray-800 text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-gamepad text-3xl text-blue-400"></i>
+                <span class="text-2xl font-extrabold tracking-wide">ZMOD.JO</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <div id="userSection" class="flex items-center gap-3">
+                    <!-- User info will be injected here -->
+                </div>
+                <button onclick="toggleAuthModal()" id="authToggleBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl text-sm font-semibold transition">
+                    <i class="fas fa-user ml-1"></i> تسجيل الدخول
+                </button>
+            </div>
         </div>
-        <!-- سلة -->
-        <div class="flex items-center gap-2 cursor-pointer group">
-          <i class="fas fa-shopping-cart text-2xl icon-gold"></i>
-          <span class="cart-badge">3</span>
-          <span class="hidden sm:inline text-sm text-gray-300 group-hover:text-gold transition">السلة</span>
-        </div>
-      </div>
     </header>
 
-    <!-- قسم العروض الشبكي 2x2 -->
-    <section class="mb-10">
-      <div class="flex items-center gap-4 mb-6">
-        <h2 class="text-3xl font-extrabold text-white tracking-wide">🔥 عروض <span class="text-gold">الأسبوع</span></h2>
-        <div class="h-0.5 flex-1 bg-gradient-to-l from-gold/40 to-transparent"></div>
-        <span class="badge-neon"><i class="fas fa-bolt ml-1"></i> 4 ألعاب</span>
-      </div>
+    <!-- Main Container -->
+    <div id="app" class="container mx-auto px-4 py-8 max-w-6xl">
 
-      <div class="offers-grid">
-        <!-- 1. Red Dead Redemption II -->
-        <div class="game-card glass-card">
-          <div class="flex justify-between items-start">
-            <div>
-              <h3 class="game-title">Red Dead Redemption II</h3>
-              <span class="game-sub">RDR2 · 2025</span>
+        <!-- Hero Section -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-3xl p-6 md:p-10 mb-12 shadow-md border border-white/50">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800">🎮 متجر ZMOD.JO</h1>
+            <p class="text-gray-600 text-lg mt-2">أسرع طريقة لشحن بطاقات الألعاب – كل ما تحتاجه في مكان واحد</p>
+            <div class="flex flex-wrap gap-3 mt-4">
+                <span class="bg-white/70 backdrop-blur px-4 py-1 rounded-full text-sm shadow-sm"><i class="fas fa-check-circle text-green-500 ml-1"></i> شحن فوري</span>
+                <span class="bg-white/70 backdrop-blur px-4 py-1 rounded-full text-sm shadow-sm"><i class="fas fa-shield-alt text-blue-500 ml-1"></i> آمن 100%</span>
+                <span class="bg-white/70 backdrop-blur px-4 py-1 rounded-full text-sm shadow-sm"><i class="fas fa-headset text-purple-500 ml-1"></i> دعم 24/7</span>
             </div>
-            <i class="fas fa-star text-gold text-lg opacity-70"></i>
-          </div>
-          <div class="mt-3 flex items-center justify-between">
-            <span class="price-tag">13 <small class="text-sm font-normal opacity-80">دينار</small></span>
-            <button class="btn-neon text-sm"><i class="fas fa-cart-plus ml-1"></i> إضافة</button>
-          </div>
-          <div class="mt-2 flex gap-2">
-            <span class="bg-gold-soft text-gold text-xs px-3 py-0.5 rounded-full border border-gold/30">Action</span>
-            <span class="bg-gold-soft text-gold text-xs px-3 py-0.5 rounded-full border border-gold/30">مغامرة</span>
-          </div>
         </div>
 
-        <!-- 2. It Takes Two -->
-        <div class="game-card glass-card">
-          <div class="flex justify-between items-start">
-            <div>
-              <h3 class="game-title">It Takes Two</h3>
-              <span class="game-sub">تعاون · 2024</span>
-            </div>
-            <i class="fas fa-users text-gold text-lg opacity-70"></i>
-          </div>
-          <div class="mt-3 flex items-center justify-between">
-            <span class="price-tag">12 <small class="text-sm font-normal opacity-80">دينار</small></span>
-            <button class="btn-neon text-sm"><i class="fas fa-cart-plus ml-1"></i> إضافة</button>
-          </div>
-          <div class="mt-2 flex gap-2">
-            <span class="bg-gold-soft text-gold text-xs px-3 py-0.5 rounded-full border border-gold/30">مغامرة</span>
-            <span class="bg-gold-soft text-gold text-xs px-3 py-0.5 rounded-full border border-gold/30">عائلي</span>
-          </div>
+        <!-- Games Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mb-12" id="gamesGrid">
+            <!-- Cards will be injected here by JS -->
         </div>
 
-        <!-- 3. Mortal Kombat 11 -->
-        <div class="game-card glass-card">
-          <div class="flex justify-between items-start">
-            <div>
-              <h3 class="game-title">Mortal Kombat 11</h3>
-              <span class="game-sub">قتال · 2023</span>
+        <!-- Order Modal -->
+        <div id="orderModal" class="fixed inset-0 bg-black/50 modal-backdrop flex items-center justify-center z-50 hidden transition-all">
+            <div class="bg-white rounded-3xl max-w-lg w-full mx-4 p-6 shadow-2xl transform transition-all scale-95 max-h-[90vh] overflow-y-auto" id="modalContent">
+                <div class="flex justify-between items-center mb-4 sticky top-0 bg-white py-2 z-10">
+                    <h3 class="text-2xl font-bold text-gray-800" id="modalTitle">طلب بطاقة</h3>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+                </div>
+                <div id="modalBody" class="space-y-4">
+                    <!-- Dynamic content -->
+                </div>
             </div>
-            <i class="fas fa-skull text-gold text-lg opacity-70"></i>
-          </div>
-          <div class="mt-3 flex items-center justify-between">
-            <span class="price-tag">5 <small class="text-sm font-normal opacity-80">دنانير</small></span>
-            <button class="btn-neon text-sm"><i class="fas fa-cart-plus ml-1"></i> إضافة</button>
-          </div>
-          <div class="mt-2 flex gap-2">
-            <span class="bg-gold-soft text-gold text-xs px-3 py-0.5 rounded-full border border-gold/30">قتال</span>
-            <span class="bg-gold-soft text-gold text-xs px-3 py-0.5 rounded-full border border-gold/30">عنيف</span>
-          </div>
         </div>
 
-        <!-- 4. Assassin's Creed Shadows -->
-        <div class="game-card glass-card">
-          <div class="flex justify-between items-start">
-            <div>
-              <h3 class="game-title">Assassin's Creed Shadows</h3>
-              <span class="game-sub">AC · 2025</span>
+        <!-- Auth Modal -->
+        <div id="authModal" class="fixed inset-0 bg-black/50 modal-backdrop flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-3xl max-w-md w-full mx-4 p-6 shadow-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-gray-800">تسجيل الدخول</h3>
+                    <button onclick="toggleAuthModal()" class="text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+                </div>
+                <div id="authContent" class="space-y-4">
+                    <!-- Auth forms will be injected -->
+                </div>
             </div>
-            <i class="fas fa-mask text-gold text-lg opacity-70"></i>
-          </div>
-          <div class="mt-3 flex items-center justify-between">
-            <span class="price-tag">24.5 <small class="text-sm font-normal opacity-80">دينار</small></span>
-            <button class="btn-neon text-sm"><i class="fas fa-cart-plus ml-1"></i> إضافة</button>
-          </div>
-          <div class="mt-2 flex gap-2">
-            <span class="bg-gold-soft text-gold text-xs px-3 py-0.5 rounded-full border border-gold/30">تخفي</span>
-            <span class="bg-gold-soft text-gold text-xs px-3 py-0.5 rounded-full border border-gold/30">تاريخي</span>
-          </div>
         </div>
-      </div>
-    </section>
 
-    <!-- قسم الدفع والسداد + معلومات إضافية -->
-    <section class="payment-section flex-wrap">
-      <div class="flex items-center gap-2">
-        <i class="fas fa-lock text-gold"></i>
-        <span class="text-sm text-gray-300">دفع آمن</span>
-        <i class="fas fa-credit-card payment-icon"></i>
-        <i class="fab fa-cc-visa payment-icon"></i>
-        <i class="fab fa-cc-mastercard payment-icon"></i>
-        <i class="fab fa-cc-apple-pay payment-icon"></i>
-      </div>
-      <div class="flex items-center gap-4 text-sm">
-        <span class="text-gold"><i class="fas fa-tag ml-1"></i> خصم 10% على أول طلب</span>
-        <span class="text-gray-400 hidden sm:inline">|</span>
-        <span class="text-gray-300 flex items-center gap-1"><i class="fas fa-truck text-gold"></i> شحن مجاني</span>
-        <button class="btn-neon text-xs px-4 py-1.5"><i class="fas fa-chevron-left ml-1"></i> إتمام الشراء</button>
-      </div>
-    </section>
+        <!-- Toast Notification -->
+        <div id="toast" class="toast">
+            <i class="fas fa-check-circle text-green-400 ml-2"></i> <span id="toastMsg">تم حفظ الطلب</span>
+        </div>
+    </div>
 
-    <!-- تذييل بسيط مع لمسات ذهبية -->
-    <footer class="mt-6 text-center text-gray-500 text-xs border-t border-gold/20 pt-4 flex flex-wrap justify-center gap-4">
-      <span class="text-gold/50">© 2026 GameHub · جميع الحقوق محفوظة</span>
-      <span><i class="fab fa-playstation text-gold/40"></i> <i class="fab fa-xbox text-gold/40"></i> <i class="fab fa-steam text-gold/40"></i></span>
-      <span class="text-gold/40">| تصميم فخم بتقنية الزجاج</span>
-    </footer>
-  </div>
+    <script>
+        // ================================================================
+        // 1. FIREBASE CONFIG & INIT
+        // ================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDMLtpqnNicZoB6HUxLnuoMT6nrhTI0aD4",
+            authDomain: "zmod-jo.firebaseapp.com",
+            projectId: "zmod-jo",
+            storageBucket: "zmod-jo.firebasestorage.app",
+            messagingSenderId: "980105773590",
+            appId: "1:980105773590:web:e885b51ea016f343df4b37",
+            measurementId: "G-MR0YV8XP9T"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ================================================================
+        // 2. GAME DATA WITH INDIVIDUAL PRICES
+        // ================================================================
+        const GAMES_DATA = {
+            playstation: {
+                name: "PlayStation",
+                icon: "fab fa-playstation",
+                image: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/playstation/playstation-original.svg",
+                regions: {
+                    "المتجر السعودي": {
+                        prices: [
+                            { label: "10$", price: 8.20 },
+                            { label: "20$", price: 15.55 },
+                            { label: "40$", price: 31.00 },
+                            { label: "50$", price: 38.50 },
+                            { label: "60$", price: 45.95 }
+                        ]
+                    },
+                    "المتجر الأمريكي": {
+                        prices: [
+                            { label: "5$", price: 4.75 },
+                            { label: "10$", price: 8.00 },
+                            { label: "25$", price: 19.25 },
+                            { label: "50$", price: 36.50 },
+                            { label: "75$", price: 55.75 }
+                        ]
+                    },
+                    "المتجر القطري": {
+                        prices: [
+                            { label: "10$", price: 8.50 },
+                            { label: "20$", price: 16.65 },
+                            { label: "40$", price: 33.20 },
+                            { label: "50$", price: 39.50 },
+                            { label: "60$", price: 47.00 }
+                        ]
+                    }
+                }
+            },
+            xbox: {
+                name: "Xbox",
+                icon: "fab fa-xbox",
+                image: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/xbox/xbox-original.svg",
+                regions: {
+                    "المتجر الأمريكي": {
+                        prices: [
+                            { label: "5$", price: 4.25 },
+                            { label: "10$", price: 8.40 },
+                            { label: "15$", price: 12.65 },
+                            { label: "20$", price: 16.80 },
+                            { label: "25$", price: 20.50 }
+                        ]
+                    }
+                }
+            },
+            nintendo: {
+                name: "Nintendo",
+                icon: "fas fa-gamepad",
+                image: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nintendo/nintendo-original.svg",
+                regions: {
+                    "المتجر الأمريكي": {
+                        prices: [
+                            { label: "10$", price: 8.50 },
+                            { label: "20$", price: 16.50 },
+                            { label: "35$", price: 27.00 },
+                            { label: "50$", price: 37.75 }
+                        ]
+                    }
+                }
+            },
+            freefire: {
+                name: "Free Fire",
+                icon: "fas fa-fire",
+                image: "https://img.icons8.com/color/96/000000/free-fire.png",
+                regions: {
+                    "جواهر": {
+                        prices: [
+                            { label: "100", price: 0.85 },
+                            { label: "210", price: 1.80 },
+                            { label: "530", price: 3.90 },
+                            { label: "1080", price: 13.00 },
+                            { label: "2200", price: 19.55 }
+                        ]
+                    }
+                }
+            },
+            pubg: {
+                name: "PUBG Mobile",
+                icon: "fas fa-crosshairs",
+                image: "https://img.icons8.com/color/96/000000/pubg.png",
+                regions: {
+                    "UC": {
+                        prices: [
+                            { label: "30UC", price: 0.65 },
+                            { label: "60UC", price: 0.85 },
+                            { label: "325UC", price: 4.50 },
+                            { label: "1800UC", price: 23.00 },
+                            { label: "3850UC", price: 45.90 }
+                        ]
+                    }
+                }
+            },
+            roblox: {
+                name: "Roblox",
+                icon: "fas fa-cubes",
+                image: "https://img.icons8.com/color/96/000000/roblox.png",
+                regions: {
+                    "Robux": {
+                        prices: [
+                            { label: "800", price: 9.00 },
+                            { label: "2000", price: 20.00 },
+                            { label: "4500", price: 40.00 }
+                        ]
+                    }
+                }
+            }
+        };
+
+        // ================================================================
+        // 3. STATE
+        // ================================================================
+        let currentUser = null;
+        let currentGameKey = null;
+        let selectedRegion = null;
+        let selectedPrice = null;
+        let selectedPriceValue = null;
+        let currentAuthMode = 'login'; // 'login' | 'signup'
+
+        // ================================================================
+        // 4. AUTH FUNCTIONS
+        // ================================================================
+        function toggleAuthModal() {
+            const modal = document.getElementById('authModal');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                renderAuthContent('login');
+            }
+        }
+
+        function renderAuthContent(mode = 'login') {
+            currentAuthMode = mode;
+            const container = document.getElementById('authContent');
+            if (mode === 'login') {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <button onclick="signInWithGoogle()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2">
+                            <i class="fab fa-google"></i> تسجيل الدخول بحساب جوجل
+                        </button>
+                        <button onclick="signInWithApple()" class="w-full bg-gray-900 hover:bg-gray-800 text-white py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2">
+                            <i class="fab fa-apple"></i> تسجيل الدخول بحساب أبل
+                        </button>
+                        <div class="relative">
+                            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-300"></div></div>
+                            <div class="relative flex justify-center text-sm"><span class="px-2 bg-white text-gray-500">أو</span></div>
+                        </div>
+                        <input id="emailInput" type="email" placeholder="البريد الإلكتروني" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400 outline-none">
+                        <input id="passwordInput" type="password" placeholder="كلمة المرور" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400 outline-none">
+                        <button onclick="signInWithEmail()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition">
+                            <i class="fas fa-sign-in-alt ml-1"></i> تسجيل الدخول
+                        </button>
+                        <button onclick="signInAsGuest()" class="w-full bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-xl font-semibold transition">
+                            <i class="fas fa-user-secret ml-1"></i> دخول كضيف
+                        </button>
+                        <p class="text-center text-sm text-gray-600">ليس لديك حساب؟ <button onclick="renderAuthContent('signup')" class="text-blue-600 font-semibold hover:underline">إنشاء حساب</button></p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <input id="signupEmail" type="email" placeholder="البريد الإلكتروني" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400 outline-none">
+                        <input id="signupPassword" type="password" placeholder="كلمة المرور (6 أحرف على الأقل)" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400 outline-none">
+                        <button onclick="signUpWithEmail()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold transition">
+                            <i class="fas fa-user-plus ml-1"></i> إنشاء حساب جديد
+                        </button>
+                        <p class="text-center text-sm text-gray-600">لديك حساب بالفعل؟ <button onclick="renderAuthContent('login')" class="text-blue-600 font-semibold hover:underline">تسجيل الدخول</button></p>
+                    </div>
+                `;
+            }
+        }
+
+        // Auth Methods
+        function signInWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then(result => handleAuthSuccess(result.user))
+                .catch(error => showToast('⚠️ فشل تسجيل الدخول: ' + error.message));
+        }
+
+        function signInWithApple() {
+            const provider = new firebase.auth.OAuthProvider('apple.com');
+            auth.signInWithPopup(provider)
+                .then(result => handleAuthSuccess(result.user))
+                .catch(error => showToast('⚠️ فشل تسجيل الدخول: ' + error.message));
+        }
+
+        function signInWithEmail() {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+            if (!email || !password) {
+                showToast('⚠️ الرجاء إدخال البريد وكلمة المرور');
+                return;
+            }
+            auth.signInWithEmailAndPassword(email, password)
+                .then(result => handleAuthSuccess(result.user))
+                .catch(error => showToast('⚠️ فشل تسجيل الدخول: ' + error.message));
+        }
+
+        function signUpWithEmail() {
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            if (!email || !password) {
+                showToast('⚠️ الرجاء إدخال البريد وكلمة المرور');
+                return;
+            }
+            if (password.length < 6) {
+                showToast('⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+                return;
+            }
+            auth.createUserWithEmailAndPassword(email, password)
+                .then(result => handleAuthSuccess(result.user))
+                .catch(error => showToast('⚠️ فشل إنشاء الحساب: ' + error.message));
+        }
+
+        function signInAsGuest() {
+            auth.signInAnonymously()
+                .then(result => handleAuthSuccess(result.user))
+                .catch(error => showToast('⚠️ فشل الدخول كضيف: ' + error.message));
+        }
+
+        function handleAuthSuccess(user) {
+            currentUser = user;
+            updateUI();
+            toggleAuthModal();
+            showToast(`✅ مرحباً ${user.displayName || 'زائر'}!`);
+            // Save user info to Firestore
+            if (user.uid) {
+                db.collection('users').doc(user.uid).set({
+                    uid: user.uid,
+                    displayName: user.displayName || 'ضيف',
+                    email: user.email || 'anonymous',
+                    provider: user.providerData[0]?.providerId || 'anonymous',
+                    lastLogin: new Date().toISOString()
+                }, { merge: true }).catch(err => console.error('Error saving user:', err));
+            }
+        }
+
+        function signOut() {
+            auth.signOut().then(() => {
+                currentUser = null;
+                updateUI();
+                showToast('تم تسجيل الخروج بنجاح');
+            });
+        }
+
+        // Auth state listener
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+            } else {
+                currentUser = null;
+            }
+            updateUI();
+        });
+
+        // ================================================================
+        // 5. UI UPDATE
+        // ================================================================
+        function updateUI() {
+            const section = document.getElementById('userSection');
+            const btn = document.getElementById('authToggleBtn');
+            
+            if (currentUser) {
+                const name = currentUser.displayName || 'زائر';
+                const photo = currentUser.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=3b82f6&color=fff&size=40';
+                section.innerHTML = `
+                    <img src="${photo}" alt="${name}" class="user-avatar border-2 border-blue-400">
+                    <span class="text-sm font-semibold hidden md:inline">${name}</span>
+                    <button onclick="signOut()" class="text-xs bg-red-600/20 hover:bg-red-600/30 text-red-300 px-3 py-1 rounded-full transition">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                `;
+                btn.innerHTML = `<i class="fas fa-user-check ml-1"></i> حسابي`;
+                btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                btn.classList.add('bg-green-600', 'hover:bg-green-700');
+            } else {
+                section.innerHTML = '';
+                btn.innerHTML = `<i class="fas fa-user ml-1"></i> تسجيل الدخول`;
+                btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            }
+        }
+
+        // ================================================================
+        // 6. RENDER GAMES
+        // ================================================================
+        function renderGames() {
+            const grid = document.getElementById('gamesGrid');
+            grid.innerHTML = '';
+            Object.keys(GAMES_DATA).forEach(key => {
+                const game = GAMES_DATA[key];
+                const card = document.createElement('div');
+                card.className = 'game-card bg-white rounded-2xl p-4 shadow-md border border-gray-100 hover:shadow-xl';
+                card.innerHTML = `
+                    <div class="flex justify-center mb-3">
+                        <img src="${game.image}" alt="${game.name}" class="w-16 h-16 object-contain" onerror="this.src='https://via.placeholder.com/80?text=${game.name[0]}'">
+                    </div>
+                    <h4 class="text-center font-bold text-lg text-gray-800">${game.name}</h4>
+                    <p class="text-center text-sm text-gray-500 mb-2">${Object.keys(game.regions).length} منطقة</p>
+                    <button onclick="openGame('${key}')" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-sm font-semibold transition">
+                        <i class="fas fa-shopping-cart ml-1"></i> طلب الآن
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // ================================================================
+        // 7. ORDER MODAL
+        // ================================================================
+        function openGame(gameKey) {
+            if (!currentUser) {
+                showToast('⚠️ الرجاء تسجيل الدخول أولاً');
+                toggleAuthModal();
+                return;
+            }
+
+            currentGameKey = gameKey;
+            const game = GAMES_DATA[gameKey];
+            const modalTitle = document.getElementById('modalTitle');
+            modalTitle.innerHTML = `<i class="${game.icon} ml-2"></i> ${game.name}`;
+
+            const body = document.getElementById('modalBody');
+            const regions = Object.keys(game.regions);
+            let html = `
+                <div class="mb-3">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">اختر المنطقة:</label>
+                    <div class="flex flex-wrap gap-2" id="regionTabs">
+            `;
+            regions.forEach((region, idx) => {
+                const active = idx === 0 ? 'active' : '';
+                html += `<button class="region-tab px-4 py-2 text-sm border border-gray-200 ${active}" data-region="${region}" onclick="selectRegion('${region}')">${region}</button>`;
+            });
+            html += `</div></div>`;
+
+            html += `<div id="pricesContainer" class="mb-4"></div>`;
+
+            html += `
+                <div id="priceDisplay" class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl text-center mb-3 border border-blue-200">
+                    <span class="text-sm text-gray-600">💰 السعر الإجمالي: </span>
+                    <span id="totalPriceDisplay" class="text-xl font-bold text-blue-600">0.00 د.أ</span>
+                </div>
+            `;
+
+            html += `
+                <div class="space-y-3 mt-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700">اسم العميل <span class="text-red-500">*</span></label>
+                        <input id="customerName" type="text" placeholder="أدخل اسمك" value="${currentUser?.displayName || ''}" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700">الـ ID / الأيدي <span class="text-red-500">*</span></label>
+                        <input id="playerId" type="text" placeholder="أدخل معرف اللعبة" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700">رقم الهاتف <span class="text-red-500">*</span></label>
+                        <input id="phoneNumber" type="tel" placeholder="مثال: 079xxxxxxxx" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 outline-none">
+                    </div>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3 mt-5">
+                    <button onclick="sendWhatsApp()" class="whatsapp-btn flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition"><i class="fab fa-whatsapp text-xl"></i> إرسال عبر واتساب</button>
+                    <button onclick="saveOrder()" class="order-btn flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition"><i class="fas fa-save"></i> حفظ في الطلبات</button>
+                </div>
+                <div class="text-xs text-gray-500 mt-2 text-center">سيتم حفظ طلبك في قاعدة البيانات مع حالة "جديد"</div>
+            `;
+
+            body.innerHTML = html;
+
+            const firstRegion = regions[0];
+            selectedRegion = firstRegion;
+            renderPrices(firstRegion);
+
+            document.getElementById('orderModal').classList.remove('hidden');
+            document.getElementById('modalContent').classList.remove('scale-95');
+            document.getElementById('modalContent').classList.add('scale-100');
+        }
+
+        function selectRegion(region) {
+            selectedRegion = region;
+            document.querySelectorAll('.region-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.region === region);
+            });
+            renderPrices(region);
+        }
+
+        function renderPrices(region) {
+            const container = document.getElementById('pricesContainer');
+            const game = GAMES_DATA[currentGameKey];
+            const regionData = game.regions[region];
+            const prices = regionData.prices;
+            
+            let html = `<label class="block text-sm font-semibold text-gray-700 mb-2">اختر الباقة والسعر:</label><div class="grid grid-cols-2 sm:grid-cols-3 gap-2">`;
+            prices.forEach(item => {
+                html += `
+                    <button class="price-btn px-3 py-3 rounded-xl text-sm bg-white flex flex-col items-center justify-center border-2" onclick="selectPrice('${item.label}', ${item.price})">
+                        <span class="font-bold text-base">${item.label}</span>
+                        <span class="text-xs text-gray-500 mt-1">${item.price.toFixed(2)} د.أ</span>
+                    </button>
+                `;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+            selectedPrice = null;
+            selectedPriceValue = null;
+            document.getElementById('totalPriceDisplay').textContent = '0.00 د.أ';
+        }
+
+        function selectPrice(label, price) {
+            selectedPrice = label;
+            selectedPriceValue = price;
+            document.querySelectorAll('.price-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.innerText.trim() === label);
+            });
+            
+            // Update total price display
+            document.getElementById('totalPriceDisplay').textContent = price.toFixed(2) + ' د.أ';
+        }
+
+        // ================================================================
+        // 8. ORDER ACTIONS
+        // ================================================================
+        function sendWhatsApp() {
+            if (!validateOrder()) return;
+            const name = document.getElementById('customerName').value.trim();
+            const id = document.getElementById('playerId').value.trim();
+            const game = GAMES_DATA[currentGameKey];
+            const message = `مرحباً ZMOD.JO، أريد طلب: ${game.name} - ${selectedRegion} - الباقة: ${selectedPrice} - السعر: ${selectedPriceValue} د.أ - الاسم: ${name} - الأيدي: ${id}`;
+            window.open(`https://wa.me/962777777777?text=${encodeURIComponent(message)}`, '_blank');
+            showToast('تم التوجيه إلى واتساب');
+        }
+
+        async function saveOrder() {
+            if (!validateOrder()) return;
+            
+            const name = document.getElementById('customerName').value.trim();
+            const phone = document.getElementById('phoneNumber').value.trim();
+            const id = document.getElementById('playerId').value.trim();
+            const game = GAMES_DATA[currentGameKey];
+
+            const orderData = {
+                game: game.name,
+                region: selectedRegion,
+                package: selectedPrice,
+                price: selectedPriceValue,
+                customerName: name,
+                phone: phone,
+                playerId: id,
+                accountType: currentUser?.isAnonymous ? 'ضيف' : 'مسجل',
+                userId: currentUser?.uid || 'anonymous',
+                status: 'جديد',
+                createdAt: new Date().toISOString(),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                await db.collection('orders').add(orderData);
+                showToast('✅ تم حفظ طلبك بنجاح!');
+                closeModal();
+            } catch (error) {
+                showToast('⚠️ فشل حفظ الطلب: ' + error.message);
+            }
+        }
+
+        function validateOrder() {
+            const name = document.getElementById('customerName').value.trim();
+            const phone = document.getElementById('phoneNumber').value.trim();
+            const id = document.getElementById('playerId').value.trim();
+            
+            if (!name) { showToast('⚠️ الرجاء إدخال اسم العميل'); return false; }
+            if (!phone) { showToast('⚠️ الرجاء إدخال رقم الهاتف'); return false; }
+            if (!id) { showToast('⚠️ الرجاء إدخال الأيدي ID'); return false; }
+            if (!selectedRegion) { showToast('⚠️ الرجاء اختيار المنطقة'); return false; }
+            if (!selectedPrice) { showToast('⚠️ الرجاء اختيار الباقة'); return false; }
+            if (!selectedPriceValue) { showToast('⚠️ الرجاء اختيار الباقة'); return false; }
+            return true;
+        }
+
+        // ================================================================
+        // 9. UI HELPERS
+        // ================================================================
+        function closeModal() {
+            document.getElementById('orderModal').classList.add('hidden');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 4000);
+        }
+
+        // Close modals on backdrop click
+        document.getElementById('orderModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+        document.getElementById('authModal').addEventListener('click', function(e) {
+            if (e.target === this) toggleAuthModal();
+        });
+
+        // ================================================================
+        // 10. INIT
+        // ================================================================
+        renderGames();
+        updateUI();
+    </script>
 </body>
 </html>
