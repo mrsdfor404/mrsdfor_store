@@ -418,6 +418,1083 @@
         let usePoints = false;
 
         // ================================================================
+        // 5. FIREBASE USER & POINTS FUNCTIONS
+        // ================================================================
+        
+        // Create user document in Firestore if it doesn't exist
+        async function createUserDocumentIfNeeded(user) {
+            if (!user || !user.uid) return;
+            
+            try {
+                const userRef = db.collection('users').doc(user.uid);
+                const doc = await userRef.get();
+                
+                if (!doc.exists) {
+                    // Create new user document with 10 points
+                    await userRef.set({
+                        email: user.email || 'anonymous',
+                        name: user.displayName || 'مستخدم',
+                        points: 10,
+                        createdAt: new Date().toISOString(),
+                        lastLogin: new Date().toISOString(),
+                        uid: user.uid,
+                        provider: user.providerData?.[0]?.providerId || 'unknown'
+                    });
+                    console.log('✅ User document created with 10 points');
+                    userPoints = 10;
+                } else {
+                    // User exists, load points
+                    const data = doc.data();
+                    userPoints = data.points || 0;
+                    console.log('📊 User points loaded:', userPoints);
+                }
+                
+                updatePointsDisplay();
+                return userPoints;
+            } catch (error) {
+                console.error('❌ Error creating/fetching user document:', error);
+                userPoints = 0;
+                updatePointsDisplay();
+                return 0;
+            }
+        }
+
+        // Load user points from Firestore
+        async function loadUserPoints(userId) {
+            try {
+                const userRef = db.collection('users').doc(userId);
+                const doc = await userRef.get();
+                
+                if (doc.exists) {
+                    const data = doc.data();
+                    userPoints = data.points || 0;
+                } else {
+                    userPoints = 0;
+                }
+                
+                updatePointsDisplay();
+                return userPoints;
+            } catch (error) {
+                console.error('Error loading points:', error);
+                userPoints = 0;
+                updatePointsDisplay();
+                return 0;
+            }
+        }
+
+        // Increment points by 2 after order
+        async function incrementUserPoints(userId) {
+            if (!userId) return;
+            
+            try {
+                const userRef = db.collection('users').doc(userId);
+                await userRef.update({
+                    points: firebase.firestore.FieldValue.increment(2)
+                });
+                
+                userPoints += 2;
+                updatePointsDisplay();
+                showToast('🪙 +2 نقاط مكافأة!');
+                return true;
+            } catch (error) {
+                console.error('Error incrementing points:', error);
+                return false;
+            }
+        }
+
+        function updatePointsDisplay() {
+            const pointsBadge = document.getElementById('pointsBadge');
+            if (pointsBadge) {
+                pointsBadge.innerHTML = `🪙 ${userPoints} نقطة`;
+            }
+        }
+
+        function showPointsInfo() {
+            if (userPoints > 0) {
+                showToast(`🪙 رصيدك الحالي: ${userPoints} نقطة`);
+            } else {
+                showToast('🪙 ليس لديك نقاط حالياً');
+            }
+        }
+
+        // ================================================================
+        // 6. AUTH FUNCTIONS
+        // ================================================================
+        function toggleAuthModal() {
+            const modal = document.getElementById('authModal');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                renderAuthContent('login');
+            }
+        }
+
+        function renderAuthContent(mode = 'login') {
+            currentAuthMode = mode;
+            const container = document.getElementById('authContent');
+            if (mode === 'login') {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <button onclick="signInWithGoogle()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2">
+                            <i class="fab fa-google"></i> تسجيل الدخول بحساب جوجل
+                        </button>
+                        <button onclick="signInWithApple()" class="w-full bg-gray-900 hover:bg-gray-800 text-white py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2">
+                            <i class="fab fa-apple"></i> تسجيل الدخول بحساب أبل
+                        </button>
+                        <div class="relative">
+                            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-300"></div></div>
+                            <div class="relative flex justify-center text-sm"><span class="px-2 bg-white text-gray-500">أو</span></div>
+                        </div>
+                        <input id="emailInput" type="email" placeholder="البريد الإلكتروني" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400 outline-none">
+                        <input id="passwordInput" type="password" placeholder="كلمة المرور" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400 outline-none">
+                        <button onclick="signInWithEmail()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition">
+                            <i class="fas fa-sign-in-alt ml-1"></i> تسجيل الدخول
+                        </button>
+                        <button onclick="signInAsGuest()" class="w-full bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-xl font-semibold transition">
+                            <i class="fas fa-user-secret ml-1"></i> دخول كضيف
+                        </button>
+                        <p class="text-center text-sm text-gray-600">ليس لديك حساب؟ <button onclick="renderAuthContent('signup')" class="text-blue-600 font-semibold hover:underline">إنشاء حساب</button></p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <input id="signupEmail" type="email" placeholder="البريد الإلكتروني" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400 outline-none">
+                        <input id="signupPassword" type="password" placeholder="كلمة المرور (6 أحرف على الأقل)" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400 outline-none">
+                        <button onclick="signUpWithEmail()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold transition">
+                            <i class="fas fa-user-plus ml-1"></i> إنشاء حساب جديد
+                        </button>
+                        <p class="text-center text-sm text-gray-600">لديك حساب بالفعل؟ <button onclick="renderAuthContent('login')" class="text-blue-600 font-semibold hover:underline">تسجيل الدخول</button></p>
+                    </div>
+                `;
+            }
+        }
+
+        // Auth Methods - Updated to use createUserDocumentIfNeeded
+        function signInWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then(result => handleAuthSuccess(result.user))
+                .catch(error => showToast('⚠️ فشل تسجيل الدخول: ' + error.message));
+        }
+
+        function signInWithApple() {
+            const provider = new firebase.auth.OAuthProvider('apple.com');
+            auth.signInWithPopup(provider)
+                .then(result => handleAuthSuccess(result.user))
+                .catch(error => showToast('⚠️ فشل تسجيل الدخول: ' + error.message));
+        }
+
+        function signInWithEmail() {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+            if (!email || !password) {
+                showToast('⚠️ الرجاء إدخال البريد وكلمة المرور');
+                return;
+            }
+            auth.signInWithEmailAndPassword(email, password)
+                .then(result => handleAuthSuccess(result.user))
+                .catch(error => showToast('⚠️ فشل تسجيل الدخول: ' + error.message));
+        }
+
+        function signUpWithEmail() {
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            if (!email || !password) {
+                showToast('⚠️ الرجاء إدخال البريد وكلمة المرور');
+                return;
+            }
+            if (password.length < 6) {
+                showToast('⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+                return;
+            }
+            auth.createUserWithEmailAndPassword(email, password)
+                .then(result => handleAuthSuccess(result.user))
+                .catch(error => showToast('⚠️ فشل إنشاء الحساب: ' + error.message));
+        }
+
+        function signInAsGuest() {
+            auth.signInAnonymously()
+                .then(result => handleAuthSuccess(result.user))
+                .catch(error => showToast('⚠️ فشل الدخول كضيف: ' + error.message));
+        }
+
+        async function handleAuthSuccess(user) {
+            currentUser = user;
+            
+            // Create user document if needed and load points
+            if (user && user.uid) {
+                await createUserDocumentIfNeeded(user);
+            }
+            
+            updateUI();
+            toggleAuthModal();
+            showToast(`✅ مرحباً ${user.displayName || 'زائر'}!`);
+        }
+
+        function signOut() {
+            auth.signOut().then(() => {
+                currentUser = null;
+                userPoints = 0;
+                updateUI();
+                showToast('تم تسجيل الخروج بنجاح');
+            });
+        }
+
+        // ================================================================
+        // 7. AUTH STATE LISTENER
+        // ================================================================
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUser = user;
+                if (user.uid) {
+                    await createUserDocumentIfNeeded(user);
+                }
+            } else {
+                currentUser = null;
+                userPoints = 0;
+            }
+            updateUI();
+        });
+
+        // ================================================================
+        // 8. UI UPDATE
+        // ================================================================
+        function updateUI() {
+            const section = document.getElementById('userSection');
+            const btn = document.getElementById('authToggleBtn');
+            
+            if (currentUser) {
+                const name = currentUser.displayName || 'زائر';
+                const photo = currentUser.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=3b82f6&color=fff&size=40';
+                section.innerHTML = `
+                    <img src="${photo}" alt="${name}" class="user-avatar border-2 border-blue-400">
+                    <span class="text-sm font-semibold hidden md:inline">${name}</span>
+                    <div id="pointsBadge" class="points-badge" onclick="showPointsInfo()">
+                        🪙 ${userPoints} نقطة
+                    </div>
+                    <button onclick="signOut()" class="text-xs bg-red-600/20 hover:bg-red-600/30 text-red-300 px-3 py-1 rounded-full transition">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                `;
+                btn.innerHTML = `<i class="fas fa-user-check ml-1"></i> حسابي`;
+                btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                btn.classList.add('bg-green-600', 'hover:bg-green-700');
+            } else {
+                section.innerHTML = `
+                    <div id="pointsBadge" class="points-badge" onclick="showPointsInfo()">
+                        🪙 0 نقطة
+                    </div>
+                `;
+                btn.innerHTML = `<i class="fas fa-user ml-1"></i> تسجيل الدخول`;
+                btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            }
+        }
+
+        // ================================================================
+        // 9. RENDER GAMES
+        // ================================================================
+        function renderGames() {
+            const grid = document.getElementById('gamesGrid');
+            grid.innerHTML = '';
+            Object.keys(GAMES_DATA).forEach(key => {
+                const game = GAMES_DATA[key];
+                const card = document.createElement('div');
+                card.className = 'game-card bg-white rounded-2xl p-4 shadow-md border border-gray-100 hover:shadow-xl';
+                card.innerHTML = `
+                    <div class="flex justify-center mb-3">
+                        <img src="${game.image}" alt="${game.name}" class="w-16 h-16 object-contain" onerror="this.src='https://via.placeholder.com/80?text=${game.name[0]}'">
+                    </div>
+                    <h4 class="text-center font-bold text-lg text-gray-800">${game.name}</h4>
+                    <p class="text-center text-sm text-gray-500 mb-2">${Object.keys(game.regions).length} منطقة</p>
+                    <button onclick="openGame('${key}')" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-sm font-semibold transition">
+                        <i class="fas fa-shopping-cart ml-1"></i> طلب الآن
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // ================================================================
+        // 10. ORDER MODAL
+        // ================================================================
+        function openGame(gameKey) {
+            if (!currentUser) {
+                showToast('⚠️ الرجاء تسجيل الدخول أولاً');
+                toggleAuthModal();
+                return;
+            }
+
+            currentGameKey = gameKey;
+            const game = GAMES_DATA[gameKey];
+            const modalTitle = document.getElementById('modalTitle');
+            modalTitle.innerHTML = `<i class="${game.icon} ml-2"></i> ${game.name}`;
+
+            const body = document.getElementById('modalBody');
+            const regions = Object.keys(game.regions);
+            let html = `
+                <div class="mb-3">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">اختر المنطقة:</label>
+                    <div class="flex flex-wrap gap-2" id="regionTabs">
+            `;
+            regions.forEach((region, idx) => {
+                const active = idx === 0 ? 'active' : '';
+                html += `<button class="region-tab px-4 py-2 text-sm border border-gray-200 ${active}" data-region="${region}" onclick="selectRegion('${region}')">${region}</button>`;
+            });
+            html += `</div></div>`;
+
+            html += `<div id="pricesContainer" class="mb-4"></div>`;
+
+            html += `
+                <div id="priceDisplay" class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl text-center mb-3 border border-blue-200">
+                    <span class="text-sm text-gray-600">💰 السعر الإجمالي: </span>
+                    <span id="totalPriceDisplay" class="text-xl font-bold text-blue-600">0.00 د.أ</span>
+                </div>
+            `;
+
+            // Points section
+            html += `<div id="pointsSection" class="mb-3 p-3 bg-yellow-50 rounded-xl border border-yellow-200">`;
+            if (userPoints > 0) {
+                html += `
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-semibold text-gray-700">🪙 استخدام النقاط للخصم</span>
+                        <button id="usePointsToggle" class="use-points-toggle px-4 py-1 rounded-full text-sm font-semibold bg-gray-200 text-gray-600" onclick="toggleUsePoints()">
+                            غير مفعل
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">لديك ${userPoints} نقطة (كل نقطة = 0.10 د.أ)</p>
+                    <div id="pointsDiscountDisplay" class="text-xs text-green-600 font-semibold mt-1 hidden">
+                        سيتم خصم 0.00 د.أ
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="text-center">
+                        <p class="text-sm text-gray-600">🪙 You don't have any points</p>
+                        <a onclick="closeModal(); openPointsModal();" class="text-xs text-blue-600 hover:underline cursor-pointer">شراء نقاط</a>
+                    </div>
+                `;
+            }
+            html += `</div>`;
+
+            html += `
+                <div class="space-y-3 mt-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700">اسم العميل <span class="text-red-500">*</span></label>
+                        <input id="customerName" type="text" placeholder="أدخل اسمك" value="${currentUser?.displayName || ''}" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700">الـ ID / الأيدي <span class="text-red-500">*</span></label>
+                        <input id="playerId" type="text" placeholder="أدخل معرف اللعبة" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700">رقم الهاتف <span class="text-red-500">*</span></label>
+                        <input id="phoneNumber" type="tel" placeholder="مثال: 079xxxxxxxx" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 outline-none">
+                    </div>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3 mt-5">
+                    <button onclick="sendWhatsApp()" class="whatsapp-btn flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition"><i class="fab fa-whatsapp text-xl"></i> إرسال عبر واتساب</button>
+                    <button onclick="saveOrder()" class="order-btn flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition"><i class="fas fa-save"></i> حفظ في الطلبات</button>
+                </div>
+                <div class="text-xs text-gray-500 mt-2 text-center">سيتم حفظ طلبك في قاعدة البيانات مع حالة "جديد"</div>
+            `;
+
+            body.innerHTML = html;
+
+            const firstRegion = regions[0];
+            selectedRegion = firstRegion;
+            renderPrices(firstRegion);
+
+            document.getElementById('orderModal').classList.remove('hidden');
+            document.getElementById('modalContent').classList.remove('scale-95');
+            document.getElementById('modalContent').classList.add('scale-100');
+        }
+
+        function selectRegion(region) {
+            selectedRegion = region;
+            document.querySelectorAll('.region-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.region === region);
+            });
+            renderPrices(region);
+        }
+
+        function renderPrices(region) {
+            const container = document.getElementById('pricesContainer');
+            const game = GAMES_DATA[currentGameKey];
+            const regionData = game.regions[region];
+            const prices = regionData.prices;
+            
+            let html = `<label class="block text-sm font-semibold text-gray-700 mb-2">اختر الباقة والسعر:</label><div class="grid grid-cols-2 sm:grid-cols-3 gap-2">`;
+            prices.forEach(item => {
+                html += `
+                    <button class="price-btn px-3 py-3 rounded-xl text-sm bg-white flex flex-col items-center justify-center border-2" onclick="selectPrice('${item.label}', ${item.price})">
+                        <span class="font-bold text-base">${item.label}</span>
+                        <span class="text-xs text-gray-500 mt-1">${item.price.toFixed(2)} د.أ</span>
+                    </button>
+                `;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+            selectedPrice = null;
+            selectedPriceValue = null;
+            document.getElementById('totalPriceDisplay').textContent = '0.00 د.أ';
+            updatePointsDiscount();
+        }
+
+        function selectPrice(label, price) {
+            selectedPrice = label;
+            selectedPriceValue = price;
+            document.querySelectorAll('.price-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.innerText.trim() === label);
+            });
+            
+            document.getElementById('totalPriceDisplay').textContent = price.toFixed(2) + ' د.أ';
+            updatePointsDiscount();
+        }
+
+        // ================================================================
+        // 11. POINTS TOGGLE & DISCOUNT
+        // ================================================================
+        function toggleUsePoints() {
+            usePoints = !usePoints;
+            const btn = document.getElementById('usePointsToggle');
+            if (btn) {
+                if (usePoints) {
+                    btn.textContent = 'مفعل ✓';
+                    btn.classList.remove('bg-gray-200', 'text-gray-600');
+                    btn.classList.add('bg-green-500', 'text-white');
+                } else {
+                    btn.textContent = 'غير مفعل';
+                    btn.classList.remove('bg-green-500', 'text-white');
+                    btn.classList.add('bg-gray-200', 'text-gray-600');
+                }
+            }
+            updatePointsDiscount();
+        }
+
+        function updatePointsDiscount() {
+            const display = document.getElementById('pointsDiscountDisplay');
+            const totalDisplay = document.getElementById('totalPriceDisplay');
+            if (!display || !totalDisplay) return;
+
+            if (usePoints && userPoints > 0 && selectedPriceValue) {
+                const maxDiscount = Math.min(userPoints * 0.10, selectedPriceValue);
+                const discountedPrice = selectedPriceValue - maxDiscount;
+                display.classList.remove('hidden');
+                display.textContent = `🪙 خصم ${maxDiscount.toFixed(2)} د.أ | السعر بعد الخصم: ${discountedPrice.toFixed(2)} د.أ`;
+                totalDisplay.textContent = discountedPrice.toFixed(2) + ' د.أ';
+            } else {
+                display.classList.add('hidden');
+                if (selectedPriceValue) {
+                    totalDisplay.textContent = selectedPriceValue.toFixed(2) + ' د.أ';
+                }
+            }
+        }
+
+        // ================================================================
+        // 12. POINTS PURCHASE MODAL
+        // ================================================================
+        function openPointsModal() {
+            if (!currentUser) {
+                showToast('⚠️ الرجاء تسجيل الدخول أولاً');
+                toggleAuthModal();
+                return;
+            }
+
+            const modal = document.getElementById('pointsModal');
+            const body = document.getElementById('pointsModalBody');
+            
+            let html = `
+                <p class="text-center text-gray-600 mb-4">اختر الحزمة المناسبة لك</p>
+                <div class="grid grid-cols-2 gap-3">
+            `;
+            
+            POINTS_PACKAGES.forEach(pkg => {
+                html += `
+                    <div class="points-package bg-white border-2 border-gray-200 rounded-xl p-4 text-center hover:border-purple-400" onclick="selectPointsPackage('${pkg.points}', ${pkg.price})">
+                        <div class="text-3xl mb-2">🪙</div>
+                        <div class="font-bold text-lg">${pkg.points} نقطة</div>
+                        <div class="text-sm text-gray-500">${pkg.description}</div>
+                        <div class="text-lg font-bold text-purple-600 mt-1">${pkg.price.toFixed(2)} د.أ</div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                </div>
+                <div class="mt-4 space-y-3">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700">رقم الهاتف <span class="text-red-500">*</span></label>
+                        <input id="pointsPhone" type="tel" placeholder="مثال: 079xxxxxxxx" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-purple-400 outline-none">
+                    </div>
+                    <button onclick="submitPointsOrder()" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 rounded-xl font-bold transition">
+                        <i class="fas fa-shopping-cart ml-2"></i> طلب شحن نقاط
+                    </button>
+                </div>
+                <div class="text-xs text-gray-500 mt-2 text-center">سيتم إضافة النقاط لحسابك بعد تأكيد الدفع</div>
+            `;
+            
+            body.innerHTML = html;
+            modal.classList.remove('hidden');
+        }
+
+        let selectedPointsPackage = null;
+        let selectedPointsPrice = null;
+
+        function selectPointsPackage(points, price) {
+            selectedPointsPackage = points;
+            selectedPointsPrice = price;
+            document.querySelectorAll('.points-package').forEach(el => {
+                el.classList.remove('selected', 'border-purple-400', 'bg-purple-50');
+                if (el.textContent.includes(points.toString())) {
+                    el.classList.add('selected', 'border-purple-400', 'bg-purple-50');
+                }
+            });
+        }
+
+        async function submitPointsOrder() {
+            const phone = document.getElementById('pointsPhone').value.trim();
+            
+            if (!selectedPointsPackage) {
+                showToast('⚠️ الرجاء اختيار حزمة النقاط');
+                return;
+            }
+            if (!phone) {
+                showToast('⚠️ الرجاء إدخال رقم الهاتف');
+                return;
+            }
+
+            const orderData = {
+                type: 'points_purchase',
+                points: selectedPointsPackage,
+                price: selectedPointsPrice,
+                phone: phone,
+                userId: currentUser.uid,
+                userEmail: currentUser.email || 'anonymous',
+                status: 'قيد المراجعة',
+                createdAt: new Date().toISOString(),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                await db.collection('orders').add(orderData);
+                showToast(`✅ تم طلب ${selectedPointsPackage} نقطة بنجاح! سيتم إضافتها بعد التأكيد`);
+                closePointsModal();
+                selectedPointsPackage = null;
+                selectedPointsPrice = null;
+            } catch (error) {
+                showToast('⚠️ فشل حفظ الطلب: ' + error.message);
+            }
+        }
+
+        function closePointsModal() {
+            document.getElementById('pointsModal').classList.add('hidden');
+        }
+
+        // ================================================================
+        // 13. ORDER ACTIONS - UPDATED WITH POINTS INCREMENT
+        // ================================================================
+        function sendWhatsApp() {
+            if (!validateOrder()) return;
+            const name = document.getElementById('customerName').value.trim();
+            const id = document.getElementById('playerId').value.trim();
+            const game = GAMES_DATA[currentGameKey];
+            
+            let finalPrice = selectedPriceValue;
+            let discountMessage = '';
+            if (usePoints && userPoints > 0) {
+                const discount = Math.min(userPoints * 0.10, selectedPriceValue);
+                finalPrice = selectedPriceValue - discount;
+                discountMessage = ` (بعد خصم ${discount.toFixed(2)} د.أ من النقاط)`;
+            }
+            
+            const message = `مرحباً ZMOD.JO، أريد طلب: ${game.name} - ${selectedRegion} - الباقة: ${selectedPrice} - السعر: ${finalPrice.toFixed(2)} د.أ${discountMessage} - الاسم: ${name} - الأيدي: ${id}`;
+            window.open(`https://wa.me/962777777777?text=${encodeURIComponent(message)}`, '_blank');
+            showToast('تم التوجيه إلى واتساب');
+        }
+
+        async function saveOrder() {
+            if (!validateOrder()) return;
+            
+            const name = document.getElementById('customerName').value.trim();
+            const phone = document.getElementById('phoneNumber').value.trim();
+            const id = document.getElementById('playerId').value.trim();
+            const game = GAMES_DATA[currentGameKey];
+
+            let finalPrice = selectedPriceValue;
+            let pointsUsed = 0;
+            let discountAmount = 0;
+            
+            if (usePoints && userPoints > 0) {
+                discountAmount = Math.min(userPoints * 0.10, selectedPriceValue);
+                finalPrice = selectedPriceValue - discountAmount;
+                pointsUsed = Math.ceil(discountAmount / 0.10);
+            }
+
+            const orderData = {
+                game: game.name,
+                region: selectedRegion,
+                package: selectedPrice,
+                originalPrice: selectedPriceValue,
+                finalPrice: finalPrice,
+                discountAmount: discountAmount,
+                pointsUsed: pointsUsed,
+                customerName: name,
+                phone: phone,
+                playerId: id,
+                accountType: currentUser?.isAnonymous ? 'ضيف' : 'مسجل',
+                userId: currentUser?.uid || 'anonymous',
+                status: 'جديد',
+                createdAt: new Date().toISOString(),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                await db.collection('orders').add(orderData);
+                
+                // Increase points by 2 for the user
+                if (currentUser && currentUser.uid) {
+                    await incrementUserPoints(currentUser.uid);
+                }
+                
+                showToast('✅ تم حفظ طلبك بنجاح! +2 نقاط مكافأة');
+                closeModal();
+            } catch (error) {
+                showToast('⚠️ فشل حفظ الطلب: ' + error.message);
+            }
+        }
+
+        function validateOrder() {
+            const name = document.getElementById('customerName').value.trim();
+            const phone = document.getElementById('phoneNumber').value.trim();
+            const id = document.getElementById('playerId').value.trim();
+            
+            if (!name) { showToast('⚠️ الرجاء إدخال اسم العميل'); return false; }
+            if (!phone) { showToast('⚠️ الرجاء إدخال رقم الهاتف'); return false; }
+            if (!id) { showToast('⚠️ الرجاء إدخال الأيدي ID'); return false; }
+            if (!selectedRegion) { showToast('⚠️ الرجاء اختيار المنطقة'); return false; }
+            if (!selectedPrice) { showToast('⚠️ الرجاء اختيار الباقة'); return false; }
+            if (!selectedPriceValue) { showToast('⚠️ الرجاء اختيار الباقة'); return false; }
+            return true;
+        }
+
+        // ================================================================
+        // 14. UI HELPERS
+        // ================================================================
+        function closeModal() {
+            document.getElementById('orderModal').classList.add('hidden');
+            usePoints = false;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 4000);
+        }
+
+        // Close modals on backdrop click
+        document.getElementById('orderModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+        document.getElementById('authModal').addEventListener('click', function(e) {
+            if (e.target === this) toggleAuthModal();
+        });
+        document.getElementById('pointsModal').addEventListener('click', function(e) {
+            if (e.target === this) closePointsModal();
+        });
+
+        // ================================================================
+        // 15. INIT
+        // ================================================================
+        renderGames();
+        updateUI();
+    </script>
+</body>
+</html>            color: white;
+        }
+        .region-tab:not(.active):hover {
+            background: #e2e8f0;
+        }
+        .price-btn {
+            transition: all 0.15s;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+        }
+        .price-btn:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            transform: scale(1.02);
+        }
+        .price-btn.selected {
+            border-color: #3b82f6;
+            background: #dbeafe;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .whatsapp-btn {
+            background: #25D366;
+            color: white;
+        }
+        .whatsapp-btn:hover {
+            background: #128C7E;
+        }
+        .order-btn {
+            background: #3b82f6;
+            color: white;
+        }
+        .order-btn:hover {
+            background: #2563eb;
+        }
+        .modal-backdrop {
+            backdrop-filter: blur(6px);
+        }
+        .auth-btn {
+            transition: all 0.2s;
+        }
+        .auth-btn:hover {
+            transform: scale(1.05);
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: none;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        .points-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .points-badge:hover {
+            transform: scale(1.05);
+        }
+        .settings-btn {
+            background: #4a5568;
+            padding: 8px 14px;
+            border-radius: 12px;
+            color: white;
+            transition: all 0.2s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .settings-btn:hover {
+            background: #2d3748;
+            transform: scale(1.05);
+        }
+        .points-package {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .points-package:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+        }
+        .points-package.selected {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            transform: scale(1.02);
+        }
+        .use-points-toggle {
+            transition: all 0.3s;
+        }
+        .use-points-toggle.active {
+            background: #3b82f6;
+            color: white;
+        }
+        .order-status-badge {
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-gray-900 to-gray-800 text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-gamepad text-3xl text-blue-400"></i>
+                <span class="text-2xl font-extrabold tracking-wide">ZMOD.JO</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <div id="userSection" class="flex items-center gap-3">
+                    <!-- User info will be injected here -->
+                </div>
+                <button onclick="toggleAuthModal()" id="authToggleBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl text-sm font-semibold transition">
+                    <i class="fas fa-user ml-1"></i> تسجيل الدخول
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div id="app" class="container mx-auto px-4 py-8 max-w-6xl">
+
+        <!-- Hero Section -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-3xl p-6 md:p-10 mb-12 shadow-md border border-white/50">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800">🎮 متجر ZMOD.JO</h1>
+            <p class="text-gray-600 text-lg mt-2">أسرع طريقة لشحن بطاقات الألعاب – كل ما تحتاجه في مكان واحد</p>
+            <div class="flex flex-wrap gap-3 mt-4">
+                <span class="bg-white/70 backdrop-blur px-4 py-1 rounded-full text-sm shadow-sm"><i class="fas fa-check-circle text-green-500 ml-1"></i> شحن فوري</span>
+                <span class="bg-white/70 backdrop-blur px-4 py-1 rounded-full text-sm shadow-sm"><i class="fas fa-shield-alt text-blue-500 ml-1"></i> آمن 100%</span>
+                <span class="bg-white/70 backdrop-blur px-4 py-1 rounded-full text-sm shadow-sm"><i class="fas fa-headset text-purple-500 ml-1"></i> دعم 24/7</span>
+            </div>
+        </div>
+
+        <!-- Games Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mb-12" id="gamesGrid">
+            <!-- Cards will be injected here by JS -->
+        </div>
+
+        <!-- Order Modal -->
+        <div id="orderModal" class="fixed inset-0 bg-black/50 modal-backdrop flex items-center justify-center z-50 hidden transition-all">
+            <div class="bg-white rounded-3xl max-w-lg w-full mx-4 p-6 shadow-2xl transform transition-all scale-95 max-h-[90vh] overflow-y-auto" id="modalContent">
+                <div class="flex justify-between items-center mb-4 sticky top-0 bg-white py-2 z-10">
+                    <h3 class="text-2xl font-bold text-gray-800" id="modalTitle">طلب بطاقة</h3>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+                </div>
+                <div id="modalBody" class="space-y-4">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Points Purchase Modal -->
+        <div id="pointsModal" class="fixed inset-0 bg-black/50 modal-backdrop flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-3xl max-w-md w-full mx-4 p-6 shadow-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-gray-800">🪙 شراء نقاط</h3>
+                    <button onclick="closePointsModal()" class="text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+                </div>
+                <div id="pointsModalBody" class="space-y-4">
+                    <!-- Points packages will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Auth Modal -->
+        <div id="authModal" class="fixed inset-0 bg-black/50 modal-backdrop flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-3xl max-w-md w-full mx-4 p-6 shadow-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-gray-800">تسجيل الدخول</h3>
+                    <button onclick="toggleAuthModal()" class="text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+                </div>
+                <div id="authContent" class="space-y-4">
+                    <!-- Auth forms will be injected -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast">
+            <i class="fas fa-check-circle text-green-400 ml-2"></i> <span id="toastMsg">تم حفظ الطلب</span>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-12">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="text-center md:text-right">
+                    <p class="text-sm text-gray-400">© 2026 ZMOD.JO - جميع الحقوق محفوظة</p>
+                </div>
+                <button onclick="openPointsModal()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-xl font-bold transition transform hover:scale-105 shadow-lg">
+                    <i class="fas fa-coins ml-2"></i> طلب شحن نقاط
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ================================================================
+        // 1. FIREBASE CONFIG & INIT
+        // ================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDMLtpqnNicZoB6HUxLnuoMT6nrhTI0aD4",
+            authDomain: "zmod-jo.firebaseapp.com",
+            projectId: "zmod-jo",
+            storageBucket: "zmod-jo.firebasestorage.app",
+            messagingSenderId: "980105773590",
+            appId: "1:980105773590:web:e885b51ea016f343df4b37",
+            measurementId: "G-MR0YV8XP9T"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ================================================================
+        // 2. GAME DATA WITH INDIVIDUAL PRICES
+        // ================================================================
+        const GAMES_DATA = {
+            playstation: {
+                name: "PlayStation",
+                icon: "fab fa-playstation",
+                image: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/playstation/playstation-original.svg",
+                regions: {
+                    "المتجر السعودي": {
+                        prices: [
+                            { label: "10$", price: 8.50 },
+                            { label: "20$", price: 16.00 },
+                            { label: "30$", price: 23.50 },
+                            { label: "40$", price: 31.00 },
+                            { label: "50$", price: 38.50 },
+                            { label: "60$", price: 46.00 }
+                        ]
+                    },
+                    "المتجر الأمريكي": {
+                        prices: [
+                            { label: "5$", price: 4.25 },
+                            { label: "10$", price: 8.50 },
+                            { label: "25$", price: 21.25 },
+                            { label: "50$", price: 42.50 },
+                            { label: "75$", price: 63.75 }
+                        ]
+                    },
+                    "المتجر القطري": {
+                        prices: [
+                            { label: "10$", price: 9.50 },
+                            { label: "20$", price: 18.00 },
+                            { label: "40$", price: 35.00 },
+                            { label: "50$", price: 43.50 },
+                            { label: "60$", price: 52.00 }
+                        ]
+                    }
+                }
+            },
+            xbox: {
+                name: "Xbox",
+                icon: "fab fa-xbox",
+                image: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/xbox/xbox-original.svg",
+                regions: {
+                    "المتجر الأمريكي": {
+                        prices: [
+                            { label: "5$", price: 4.50 },
+                            { label: "10$", price: 9.00 },
+                            { label: "15$", price: 13.50 },
+                            { label: "20$", price: 18.00 },
+                            { label: "25$", price: 22.50 }
+                        ]
+                    }
+                }
+            },
+            nintendo: {
+                name: "Nintendo",
+                icon: "fas fa-gamepad",
+                image: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nintendo/nintendo-original.svg",
+                regions: {
+                    "المتجر الأمريكي": {
+                        prices: [
+                            { label: "10$", price: 9.50 },
+                            { label: "20$", price: 18.50 },
+                            { label: "35$", price: 32.00 },
+                            { label: "50$", price: 45.00 }
+                        ]
+                    }
+                }
+            },
+            freefire: {
+                name: "Free Fire",
+                icon: "fas fa-fire",
+                image: "https://img.icons8.com/color/96/000000/free-fire.png",
+                regions: {
+                    "جواهر": {
+                        prices: [
+                            { label: "100", price: 1.50 },
+                            { label: "210", price: 3.00 },
+                            { label: "530", price: 7.50 },
+                            { label: "1080", price: 15.00 },
+                            { label: "2200", price: 28.00 }
+                        ]
+                    }
+                }
+            },
+            pubg: {
+                name: "PUBG Mobile",
+                icon: "fas fa-crosshairs",
+                image: "https://img.icons8.com/color/96/000000/pubg.png",
+                regions: {
+                    "UC": {
+                        prices: [
+                            { label: "30UC", price: 0.75 },
+                            { label: "60UC", price: 1.50 },
+                            { label: "325UC", price: 7.50 },
+                            { label: "1800UC", price: 35.00 },
+                            { label: "3850UC", price: 65.00 }
+                        ]
+                    }
+                }
+            },
+            roblox: {
+                name: "Roblox",
+                icon: "fas fa-cubes",
+                image: "https://img.icons8.com/color/96/000000/roblox.png",
+                regions: {
+                    "Robux": {
+                        prices: [
+                            { label: "800", price: 12.00 },
+                            { label: "2000", price: 28.00 },
+                            { label: "4500", price: 55.00 }
+                        ]
+                    }
+                }
+            }
+        };
+
+        // ================================================================
+        // 3. POINTS SYSTEM CONFIGURATION
+        // ================================================================
+        const POINTS_PACKAGES = [
+            { points: 10, price: 1.00, description: "⭐ حزمة صغيرة" },
+            { points: 25, price: 2.50, description: "🔥 حزمة متوسطة" },
+            { points: 50, price: 5.00, description: "💰 حزمة كبيرة" },
+            { points: 100, price: 9.50, description: "💎 حزمة VIP" }
+        ];
+
+        // ================================================================
+        // 4. STATE
+        // ================================================================
+        let currentUser = null;
+        let currentGameKey = null;
+        let selectedRegion = null;
+        let selectedPrice = null;
+        let selectedPriceValue = null;
+        let currentAuthMode = 'login';
+        let userPoints = 0;
+        let usePoints = false;
+
+        // ================================================================
         // 5. POINTS FUNCTIONS
         // ================================================================
         async function loadUserPoints(userId) {
