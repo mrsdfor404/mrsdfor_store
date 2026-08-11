@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZMOD.JO - متجر بطاقات الألعاب</title>
+    <title>ZMOD.JO</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -336,9 +336,8 @@
                 regions: {
                     "المتجر السعودي": {
                         prices: [
-                            { label: "10$", price: 8.50 },
+                            { label: "10$", price: 8.00 },
                             { label: "20$", price: 16.00 },
-                            { label: "30$", price: 23.50 },
                             { label: "40$", price: 31.00 },
                             { label: "50$", price: 38.50 },
                             { label: "60$", price: 46.00 }
@@ -346,20 +345,20 @@
                     },
                     "المتجر الأمريكي": {
                         prices: [
-                            { label: "5$", price: 4.25 },
+                            { label: "5$", price: 6.45 },
                             { label: "10$", price: 8.50 },
-                            { label: "25$", price: 21.25 },
-                            { label: "50$", price: 42.50 },
-                            { label: "75$", price: 63.75 }
+                            { label: "25$", price: 19.50 },
+                            { label: "50$", price: 38.50 },
+                            { label: "75$", price: 55.75 }
                         ]
                     },
                     "المتجر القطري": {
                         prices: [
-                            { label: "10$", price: 9.50 },
-                            { label: "20$", price: 18.00 },
-                            { label: "40$", price: 35.00 },
-                            { label: "50$", price: 43.50 },
-                            { label: "60$", price: 52.00 }
+                            { label: "10$", price: 8.50 },
+                            { label: "20$", price: 16.00 },
+                            { label: "40$", price: 31.00 },
+                            { label: "50$", price: 39.50 },
+                            { label: "60$", price: 46.00 }
                         ]
                     }
                 }
@@ -372,10 +371,10 @@
                     "المتجر الأمريكي": {
                         prices: [
                             { label: "5$", price: 4.00 },
-                            { label: "10$", price: 7.50 },
-                            { label: "15$", price: 11.25 },
-                            { label: "20$", price: 15.00 },
-                            { label: "25$", price: 18.75 }
+                            { label: "10$", price: 8.00 },
+                            { label: "15$", price: 11.85 },
+                            { label: "20$", price: 15.95 },
+                            { label: "25$", price: 18.00 }
                         ]
                     }
                 }
@@ -387,10 +386,10 @@
                 regions: {
                     "المتجر الأمريكي": {
                         prices: [
-                            { label: "10$", price: 9.50 },
-                            { label: "20$", price: 18.50 },
-                            { label: "35$", price: 32.00 },
-                            { label: "50$", price: 45.00 }
+                            { label: "10$", price: 8.50 },
+                            { label: "20$", price: 15.50 },
+                            { label: "35$", price: 26.00 },
+                            { label: "50$", price: 37.00 }
                         ]
                     }
                 }
@@ -402,11 +401,11 @@
                 regions: {
                     "جواهر": {
                         prices: [
-                            { label: "100", price: 1.50 },
-                            { label: "210", price: 3.00 },
-                            { label: "530", price: 7.50 },
-                            { label: "1080", price: 15.00 },
-                            { label: "2200", price: 28.00 }
+                            { label: "100", price: 0.85 },
+                            { label: "210", price: 1.60 },
+                            { label: "530", price: 4.50 },
+                            { label: "1080", price: 8.85 },
+                            { label: "2200", price: 17.00 }
                         ]
                     }
                 }
@@ -418,11 +417,11 @@
                 regions: {
                     "UC": {
                         prices: [
-                            { label: "30UC", price: 0.75 },
-                            { label: "60UC", price: 1.50 },
-                            { label: "325UC", price: 7.50 },
-                            { label: "1800UC", price: 35.00 },
-                            { label: "3850UC", price: 65.00 }
+                            { label: "30UC", price: 0.60 },
+                            { label: "60UC", price: 0.85 },
+                            { label: "325UC", price: 4.50 },
+                            { label: "1800UC", price: 19.00 },
+                            { label: "3850UC", price: 38.20 }
                         ]
                     }
                 }
@@ -434,9 +433,9 @@
                 regions: {
                     "Robux": {
                         prices: [
-                            { label: "800", price: 12.00 },
-                            { label: "2000", price: 28.00 },
-                            { label: "4500", price: 55.00 }
+                            { label: "800", price: 9.00 },
+                            { label: "2000", price: 21.00 },
+                            { label: "4500", price: 39.00 }
                         ]
                     }
                 }
@@ -447,10 +446,11 @@
         // 3. POINTS SYSTEM CONFIGURATION
         // ================================================================
         const POINTS_PACKAGES = [
-            { points: 10, price: 1.00, description: "⭐ حزمة صغيرة" },
-            { points: 25, price: 2.50, description: "🔥 حزمة متوسطة" },
-            { points: 50, price: 5.00, description: "💰 حزمة كبيرة" },
-            { points: 100, price: 9.50, description: "💎 حزمة VIP" }
+            { points: 10, price: 0.50, description: "BABY" },
+            { points: 25, price: 1.00, description: "MD P" },
+            { points: 50, price: 2.00, description: "BIG POINT" },
+            { points: 100, price: 3.50, description: "VIP },
+            { points: 2000, price: 7.00, description: "ULTRA" }
         ];
 
         // ================================================================
