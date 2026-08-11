@@ -326,8 +326,8 @@
         const db = firebase.firestore();
 
         // ================================================================
-        // 2. GAME DATA WITH INDIVIDUAL PRICES
-         // ================================================================
+        // 2. GAME DATA WITH PRICES
+        // ================================================================
         const GAMES_DATA = {
             playstation: {
                 name: "PlayStation",
@@ -488,6 +488,7 @@
                     console.log('✅ User document created with 10 points');
                     userPoints = 10;
                 } else {
+                    const data = doc.data();
                     userPoints = data.points || 0;
                     console.log('📊 User points loaded:', userPoints);
                 }
