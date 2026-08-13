@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZMOD.JO</title>
+    <title>ZMOD.JO - متجر بطاقات الألعاب</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -18,15 +18,13 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
     <style>
-        * { 
-            font-family: 'Cairo', sans-serif; 
-        }
+        * { font-family: 'Cairo', sans-serif; }
         
-        .game-card {
+        .game-card, .card-game-card, .zain-card {
             transition: all 0.3s ease;
             cursor: pointer;
         }
-        .game-card:hover {
+        .game-card:hover, .card-game-card:hover, .zain-card:hover {
             transform: translateY(-8px);
             box-shadow: 0 20px 30px -10px rgba(0,0,0,0.3);
         }
@@ -140,8 +138,7 @@
             to { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
         
-        .points-badge {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        .points-badge, .wallet-badge {
             padding: 4px 12px;
             border-radius: 20px;
             font-weight: bold;
@@ -153,7 +150,13 @@
             cursor: pointer;
             transition: transform 0.2s;
         }
-        .points-badge:hover {
+        .points-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .wallet-badge {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .points-badge:hover, .wallet-badge:hover {
             transform: scale(1.05);
         }
         
@@ -175,11 +178,20 @@
             color: #4b5563;
         }
         
-        .order-status-badge {
-            padding: 2px 10px;
+        .nav-tab {
+            transition: all 0.2s;
+            padding: 10px 20px;
             border-radius: 12px;
-            font-size: 12px;
+            cursor: pointer;
             font-weight: 600;
+            white-space: nowrap;
+        }
+        .nav-tab.active {
+            background: #1e293b;
+            color: white;
+        }
+        .nav-tab:not(.active):hover {
+            background: #e2e8f0;
         }
 
         .game-logo {
@@ -207,6 +219,45 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
+
+        .wallet-transaction {
+            border-right: 4px solid #3b82f6;
+        }
+        .wallet-transaction.credit {
+            border-right-color: #22c55e;
+        }
+        .wallet-transaction.debit {
+            border-right-color: #ef4444;
+        }
+
+        .zain-notice {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+            color: #92400e;
+        }
+        .zain-notice i {
+            color: #f59e0b;
+            margin-left: 8px;
+        }
+
+        .no-wallet-message {
+            background: #fef2f2;
+            border: 2px solid #fca5a5;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: #991b1b;
+        }
+        .no-wallet-message i {
+            font-size: 48px;
+            color: #ef4444;
+            display: block;
+            margin-bottom: 12px;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -229,11 +280,34 @@
         </div>
     </header>
 
+    <!-- Navigation Tabs -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="container mx-auto px-4">
+            <div class="flex gap-2 py-3 overflow-x-auto">
+                <button class="nav-tab active" onclick="switchTab('games')" id="tabGames">
+                    <i class="fas fa-gamepad ml-2"></i> بطاقات الألعاب
+                </button>
+                <button class="nav-tab" onclick="switchTab('cards')" id="tabCards">
+                    <i class="fas fa-credit-card ml-2"></i> بطاقات PS/Xbox/Nintendo
+                </button>
+                <button class="nav-tab" onclick="switchTab('zain')" id="tabZain">
+                    <i class="fas fa-phone ml-2"></i> شحن زين
+                </button>
+                <button class="nav-tab" onclick="switchTab('wallet')" id="tabWallet">
+                    <i class="fas fa-wallet ml-2"></i> المحفظة
+                </button>
+                <button class="nav-tab" onclick="switchTab('orders')" id="tabOrders">
+                    <i class="fas fa-list ml-2"></i> طلباتي
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Container -->
     <div id="app" class="container mx-auto px-4 py-8 max-w-6xl">
 
         <!-- Hero Section -->
-        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-3xl p-6 md:p-10 mb-12 shadow-md border border-white/50">
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-3xl p-6 md:p-10 mb-8 shadow-md border border-white/50">
             <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800">🎮 متجر ZMOD.JO</h1>
             <p class="text-gray-600 text-lg mt-2">أسرع طريقة لشحن بطاقات الألعاب – كل ما تحتاجه في مكان واحد</p>
             <div class="flex flex-wrap gap-3 mt-4">
@@ -243,9 +317,55 @@
             </div>
         </div>
 
-        <!-- Games Grid -->
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mb-12" id="gamesGrid">
-            <!-- Cards will be injected here by JS -->
+        <!-- Games Section -->
+        <div id="gamesSection">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">🎮 بطاقات الألعاب</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mb-12" id="gamesGrid">
+                <!-- Cards will be injected here by JS -->
+            </div>
+        </div>
+
+        <!-- Cards Section (PS/Xbox/Nintendo) -->
+        <div id="cardsSection" class="hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">💳 بطاقات PlayStation - Xbox - Nintendo</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-5 mb-12" id="cardsGrid">
+                <!-- Cards will be injected here by JS -->
+            </div>
+        </div>
+
+        <!-- Zain Recharge Section -->
+        <div id="zainSection" class="hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">📱 شحن رصيد زين</h2>
+            <div class="zain-notice mb-6">
+                <i class="fas fa-exclamation-triangle"></i>
+                تنويه: الشحن يتم بشكل تلقائي بعد إتمام عملية الدفع
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="zainGrid">
+                <!-- Zain packages will be injected here -->
+            </div>
+        </div>
+
+        <!-- Wallet Section -->
+        <div id="walletSection" class="hidden">
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">💰 المحفظة</h2>
+                    <button onclick="showAddWalletModal()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">
+                        <i class="fas fa-plus ml-1"></i> شحن المحفظة
+                    </button>
+                </div>
+                <div id="walletContent">
+                    <!-- Wallet content will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Section -->
+        <div id="ordersSection" class="hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">📋 طلباتي</h2>
+            <div id="ordersList" class="space-y-4">
+                <!-- Orders will be injected here -->
+            </div>
         </div>
 
         <!-- Order Modal -->
@@ -257,6 +377,33 @@
                 </div>
                 <div id="modalBody" class="space-y-4">
                     <!-- Dynamic content -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Wallet Modal -->
+        <div id="walletModal" class="fixed inset-0 bg-black/50 modal-backdrop flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-3xl max-w-md w-full mx-4 p-6 shadow-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-gray-800">💰 شحن المحفظة</h3>
+                    <button onclick="closeWalletModal()" class="text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">المبلغ (د.أ)</label>
+                        <input id="walletAmount" type="number" step="0.01" min="1" placeholder="أدخل المبلغ" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">طريقة الدفع</label>
+                        <select id="walletPaymentMethod" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400 outline-none">
+                            <option value="card">بطاقة ائتمان</option>
+                            <option value="bank">تحويل بنكي</option>
+                            <option value="cash">دفع نقدي</option>
+                        </select>
+                    </div>
+                    <button onclick="addWalletBalance()" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 rounded-xl font-bold transition">
+                        <i class="fas fa-check ml-2"></i> تأكيد الشحن
+                    </button>
                 </div>
             </div>
         </div>
@@ -326,13 +473,68 @@
         const db = firebase.firestore();
 
         // ================================================================
-        // 2. GAME DATA WITH PRICES
+        // 2. GAME DATA
         // ================================================================
+        // Games (Free Fire, PUBG, Roblox) - require phone for delivery
         const GAMES_DATA = {
+            freefire: {
+                name: "Free Fire",
+                icon: "fas fa-fire",
+                image: "https://img.icons8.com/color/96/000000/free-fire.png",
+                type: "game",
+                regions: {
+                    "جواهر": {
+                        prices: [
+                            { label: "100", price: 0.85 },
+                            { label: "210", price: 1.60 },
+                            { label: "530", price: 4.50 },
+                            { label: "1080", price: 8.85 },
+                            { label: "2200", price: 17.00 }
+                        ]
+                    }
+                }
+            },
+            pubg: {
+                name: "PUBG Mobile",
+                icon: "fas fa-crosshairs",
+                image: "https://img.icons8.com/color/96/000000/pubg.png",
+                type: "game",
+                regions: {
+                    "UC": {
+                        prices: [
+                            { label: "30UC", price: 0.60 },
+                            { label: "60UC", price: 0.85 },
+                            { label: "325UC", price: 4.50 },
+                            { label: "1800UC", price: 19.00 },
+                            { label: "3850UC", price: 38.20 }
+                        ]
+                    }
+                }
+            },
+            roblox: {
+                name: "Roblox",
+                icon: "fas fa-cubes",
+                image: "https://img.icons8.com/color/96/000000/roblox.png",
+                type: "game",
+                regions: {
+                    "Robux": {
+                        prices: [
+                            { label: "800", price: 9.00 },
+                            { label: "2000", price: 21.00 },
+                            { label: "4500", price: 39.00 }
+                        ]
+                    }
+                }
+            }
+        };
+
+        // Cards (PlayStation, Xbox, Nintendo) - require WhatsApp/Email for delivery
+        const CARDS_DATA = {
             playstation: {
                 name: "PlayStation",
                 icon: "fab fa-playstation",
                 image: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/playstation/playstation-original.svg",
+                type: "card",
                 regions: {
                     "المتجر السعودي": {
                         prices: [
@@ -367,6 +569,7 @@
                 name: "Xbox",
                 icon: "fab fa-xbox",
                 image: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/xbox/xbox-original.svg",
+                type: "card",
                 regions: {
                     "المتجر الأمريكي": {
                         prices: [
@@ -383,6 +586,7 @@
                 name: "Nintendo",
                 icon: "fas fa-gamepad",
                 image: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nintendo/nintendo-original.svg",
+                type: "card",
                 regions: {
                     "المتجر الأمريكي": {
                         prices: [
@@ -393,53 +597,21 @@
                         ]
                     }
                 }
-            },
-            freefire: {
-                name: "Free Fire",
-                icon: "fas fa-fire",
-                image: "https://img.icons8.com/color/96/000000/free-fire.png",
-                regions: {
-                    "جواهر": {
-                        prices: [
-                            { label: "100", price: 0.85 },
-                            { label: "210", price: 1.60 },
-                            { label: "530", price: 4.50 },
-                            { label: "1080", price: 8.85 },
-                            { label: "2200", price: 17.00 }
-                        ]
-                    }
-                }
-            },
-            pubg: {
-                name: "PUBG Mobile",
-                icon: "fas fa-crosshairs",
-                image: "https://img.icons8.com/color/96/000000/pubg.png",
-                regions: {
-                    "UC": {
-                        prices: [
-                            { label: "30UC", price: 0.60 },
-                            { label: "60UC", price: 0.85 },
-                            { label: "325UC", price: 4.50 },
-                            { label: "1800UC", price: 19.00 },
-                            { label: "3850UC", price: 38.20 }
-                        ]
-                    }
-                }
-            },
-            roblox: {
-                name: "Roblox",
-                icon: "fas fa-cubes",
-                image: "https://img.icons8.com/color/96/000000/roblox.png",
-                regions: {
-                    "Robux": {
-                        prices: [
-                            { label: "800", price: 9.00 },
-                            { label: "2000", price: 21.00 },
-                            { label: "4500", price: 39.00 }
-                        ]
-                    }
-                }
             }
+        };
+
+        // Zain Recharge Data
+        const ZAIN_DATA = {
+            packages: [
+                { label: "1", price: 0.50 },
+                { label: "3", price: 1.50 },
+                { label: "5", price: 2.50 },
+                { label: "6", price: 3.00 },
+                { label: "9", price: 4.50 },
+                { label: "12", price: 6.00 },
+                { label: "20", price: 10.00 },
+                { label: "36", price: 18.00 }
+            ]
         };
 
         // ================================================================
@@ -456,16 +628,21 @@
         // 4. STATE
         // ================================================================
         let currentUser = null;
-        let currentGameKey = null;
+        let currentOrderType = null; // 'game', 'card', 'zain'
+        let currentItemKey = null;
         let selectedRegion = null;
         let selectedPrice = null;
         let selectedPriceValue = null;
         let currentAuthMode = 'login';
         let userPoints = 0;
+        let userWallet = 0;
         let usePoints = false;
+        let selectedDiscountPoints = 0;
+        let currentTab = 'games';
+        let walletExists = false;
 
         // ================================================================
-        // 5. FIREBASE USER & POINTS FUNCTIONS
+        // 5. FIREBASE USER FUNCTIONS
         // ================================================================
         
         async function createUserDocumentIfNeeded(user) {
@@ -485,77 +662,155 @@
                         uid: user.uid,
                         provider: user.providerData?.[0]?.providerId || 'unknown'
                     });
-                    console.log('✅ User document created with 10 points');
                     userPoints = 10;
                 } else {
                     const data = doc.data();
                     userPoints = data.points || 0;
-                    console.log('📊 User points loaded:', userPoints);
                 }
                 
-                updatePointsDisplay();
-                return userPoints;
-            } catch (error) {
-                console.error('❌ Error creating/fetching user document:', error);
-                userPoints = 0;
-                updatePointsDisplay();
-                return 0;
-            }
-        }
-
-        async function loadUserPoints(userId) {
-            try {
-                const userRef = db.collection('users').doc(userId);
-                const doc = await userRef.get();
-                
-                if (doc.exists) {
-                    const data = doc.data();
-                    userPoints = data.points || 0;
-                } else {
-                    userPoints = 0;
-                }
+                // Load wallet from wallet collection
+                await loadWalletData(user.uid);
                 
                 updatePointsDisplay();
-                return userPoints;
-            } catch (error) {
-                console.error('Error loading points:', error);
-                userPoints = 0;
-                updatePointsDisplay();
-                return 0;
-            }
-        }
-
-        async function incrementUserPoints(userId) {
-            if (!userId) return;
-            
-            try {
-                const userRef = db.collection('users').doc(userId);
-                await userRef.update({
-                    points: firebase.firestore.FieldValue.increment(2)
-                });
-                
-                userPoints += 2;
-                updatePointsDisplay();
-                showToast('🪙 +2 نقاط مكافأة!');
+                updateWalletDisplay();
                 return true;
             } catch (error) {
-                console.error('Error incrementing points:', error);
+                console.error('Error creating/fetching user document:', error);
                 return false;
             }
         }
 
-        function updatePointsDisplay() {
-            const pointsBadge = document.getElementById('pointsBadge');
-            if (pointsBadge) {
-                pointsBadge.innerHTML = `🪙 ${userPoints} نقطة`;
+        async function loadWalletData(userId) {
+            if (!userId) return;
+            
+            try {
+                const walletRef = db.collection('wallet').doc(userId);
+                const doc = await walletRef.get();
+                
+                if (doc.exists) {
+                    const data = doc.data();
+                    userWallet = data.wallet || 0;
+                    walletExists = true;
+                } else {
+                    userWallet = 0;
+                    walletExists = false;
+                }
+                
+                updateWalletDisplay();
+                return true;
+            } catch (error) {
+                console.error('Error loading wallet data:', error);
+                userWallet = 0;
+                walletExists = false;
+                updateWalletDisplay();
+                return false;
             }
         }
 
-        function showPointsInfo() {
-            if (userPoints > 0) {
-                showToast(`🪙 رصيدك الحالي: ${userPoints} نقطة`);
-            } else {
-                showToast('🪙 ليس لديك نقاط حالياً');
+        async function loadUserData(userId) {
+            try {
+                const userRef = db.collection('users').doc(userId);
+                const userDoc = await userRef.get();
+                
+                if (userDoc.exists) {
+                    const data = userDoc.data();
+                    userPoints = data.points || 0;
+                }
+                
+                // Load wallet from wallet collection
+                await loadWalletData(userId);
+                
+                updatePointsDisplay();
+                updateWalletDisplay();
+                return true;
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                return false;
+            }
+        }
+
+        async function updateUserPoints(points) {
+            if (!currentUser) return;
+            try {
+                const userRef = db.collection('users').doc(currentUser.uid);
+                await userRef.update({ points: points });
+                userPoints = points;
+                updatePointsDisplay();
+                return true;
+            } catch (error) {
+                console.error('Error updating points:', error);
+                return false;
+            }
+        }
+
+        async function updateUserWallet(wallet) {
+            if (!currentUser) return;
+            try {
+                // Update wallet collection
+                const walletRef = db.collection('wallet').doc(currentUser.uid);
+                await walletRef.set({
+                    wallet: wallet,
+                    userId: currentUser.uid,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+                
+                userWallet = wallet;
+                walletExists = true;
+                updateWalletDisplay();
+                return true;
+            } catch (error) {
+                console.error('Error updating wallet:', error);
+                return false;
+            }
+        }
+
+        async function addWalletTransaction(amount, type, description) {
+            if (!currentUser) return;
+            try {
+                const transRef = db.collection('users').doc(currentUser.uid).collection('transactions');
+                await transRef.add({
+                    amount: amount,
+                    type: type, // 'credit' or 'debit'
+                    description: description,
+                    date: new Date().toISOString(),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                return true;
+            } catch (error) {
+                console.error('Error adding transaction:', error);
+                return false;
+            }
+        }
+
+        async function getUserTransactions() {
+            if (!currentUser) return [];
+            try {
+                const transRef = db.collection('users').doc(currentUser.uid).collection('transactions');
+                const snapshot = await transRef.orderBy('timestamp', 'desc').limit(20).get();
+                const transactions = [];
+                snapshot.forEach(doc => {
+                    transactions.push({ id: doc.id, ...doc.data() });
+                });
+                return transactions;
+            } catch (error) {
+                console.error('Error fetching transactions:', error);
+                return [];
+            }
+        }
+
+        async function getUserOrders() {
+            if (!currentUser) return [];
+            try {
+                const ordersRef = db.collection('orders');
+                const snapshot = await ordersRef.where('userId', '==', currentUser.uid).orderBy('timestamp', 'desc').get();
+                const orders = [];
+                snapshot.forEach(doc => {
+                    orders.push({ id: doc.id, ...doc.data() });
+                });
+                return orders;
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+                return [];
             }
         }
 
@@ -661,11 +916,13 @@
 
         async function handleAuthSuccess(user) {
             currentUser = user;
-            
             if (user && user.uid) {
                 await createUserDocumentIfNeeded(user);
+                await loadUserData(user.uid);
+                renderWalletSection();
+                renderOrdersSection();
+                renderZainPackages();
             }
-            
             updateUI();
             toggleAuthModal();
             showToast(`✅ مرحباً ${user.displayName || 'زائر'}!`);
@@ -675,6 +932,8 @@
             auth.signOut().then(() => {
                 currentUser = null;
                 userPoints = 0;
+                userWallet = 0;
+                walletExists = false;
                 updateUI();
                 showToast('تم تسجيل الخروج بنجاح');
             });
@@ -685,10 +944,16 @@
                 currentUser = user;
                 if (user.uid) {
                     await createUserDocumentIfNeeded(user);
+                    await loadUserData(user.uid);
+                    renderWalletSection();
+                    renderOrdersSection();
+                    renderZainPackages();
                 }
             } else {
                 currentUser = null;
                 userPoints = 0;
+                userWallet = 0;
+                walletExists = false;
             }
             updateUI();
         });
@@ -706,6 +971,9 @@
                 section.innerHTML = `
                     <img src="${photo}" alt="${name}" class="user-avatar border-2 border-blue-400">
                     <span class="text-sm font-semibold hidden md:inline">${name}</span>
+                    <div class="wallet-badge" onclick="showWalletInfo()">
+                        💰 ${userWallet.toFixed(2)} د.أ
+                    </div>
                     <div id="pointsBadge" class="points-badge" onclick="showPointsInfo()">
                         🪙 ${userPoints} نقطة
                     </div>
@@ -718,6 +986,9 @@
                 btn.classList.add('bg-green-600', 'hover:bg-green-700');
             } else {
                 section.innerHTML = `
+                    <div class="wallet-badge" onclick="showWalletInfo()">
+                        💰 0.00 د.أ
+                    </div>
                     <div id="pointsBadge" class="points-badge" onclick="showPointsInfo()">
                         🪙 0 نقطة
                     </div>
@@ -728,8 +999,65 @@
             }
         }
 
+        function updatePointsDisplay() {
+            const pointsBadge = document.getElementById('pointsBadge');
+            if (pointsBadge) {
+                pointsBadge.innerHTML = `🪙 ${userPoints} نقطة`;
+            }
+            const walletPoints = document.getElementById('walletPoints');
+            if (walletPoints) {
+                walletPoints.textContent = userPoints;
+            }
+        }
+
+        function updateWalletDisplay() {
+            const walletBadge = document.querySelector('.wallet-badge');
+            if (walletBadge) {
+                walletBadge.innerHTML = `💰 ${userWallet.toFixed(2)} د.أ`;
+            }
+            const balanceDisplay = document.getElementById('walletBalance');
+            if (balanceDisplay) {
+                balanceDisplay.textContent = userWallet.toFixed(2) + ' د.أ';
+            }
+        }
+
+        function showPointsInfo() {
+            if (userPoints > 0) {
+                showToast(`🪙 رصيدك الحالي: ${userPoints} نقطة`);
+            } else {
+                showToast('🪙 ليس لديك نقاط حالياً');
+            }
+        }
+
+        function showWalletInfo() {
+            if (walletExists) {
+                showToast(`💰 رصيد المحفظة: ${userWallet.toFixed(2)} د.أ`);
+            } else {
+                showToast('⚠️ لا توجد محفظة مفعلة حالياً');
+            }
+        }
+
         // ================================================================
-        // 8. RENDER GAMES
+        // 8. TAB SWITCHING
+        // ================================================================
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+            
+            document.getElementById('gamesSection').classList.toggle('hidden', tab !== 'games');
+            document.getElementById('cardsSection').classList.toggle('hidden', tab !== 'cards');
+            document.getElementById('zainSection').classList.toggle('hidden', tab !== 'zain');
+            document.getElementById('walletSection').classList.toggle('hidden', tab !== 'wallet');
+            document.getElementById('ordersSection').classList.toggle('hidden', tab !== 'orders');
+            
+            if (tab === 'wallet') renderWalletSection();
+            if (tab === 'orders') renderOrdersSection();
+            if (tab === 'zain') renderZainPackages();
+        }
+
+        // ================================================================
+        // 9. RENDER GAMES & CARDS
         // ================================================================
         function renderGames() {
             const grid = document.getElementById('gamesGrid');
@@ -744,7 +1072,7 @@
                     </div>
                     <h4 class="text-center font-bold text-lg text-gray-800">${game.name}</h4>
                     <p class="text-center text-sm text-gray-500 mb-2">${Object.keys(game.regions).length} منطقة</p>
-                    <button onclick="openGame('${key}')" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-sm font-semibold transition">
+                    <button onclick="openOrder('game', '${key}')" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-sm font-semibold transition">
                         <i class="fas fa-shopping-cart ml-1"></i> طلب الآن
                     </button>
                 `;
@@ -752,23 +1080,123 @@
             });
         }
 
+        function renderCards() {
+            const grid = document.getElementById('cardsGrid');
+            grid.innerHTML = '';
+            Object.keys(CARDS_DATA).forEach(key => {
+                const card = CARDS_DATA[key];
+                const div = document.createElement('div');
+                div.className = 'card-game-card bg-white rounded-2xl p-4 shadow-md border border-gray-100 hover:shadow-xl';
+                div.innerHTML = `
+                    <div class="flex justify-center mb-3">
+                        <img src="${card.image}" alt="${card.name}" class="game-logo" onerror="this.src='https://via.placeholder.com/80?text=${card.name[0]}'">
+                    </div>
+                    <h4 class="text-center font-bold text-lg text-gray-800">${card.name}</h4>
+                    <p class="text-center text-sm text-gray-500 mb-2">${Object.keys(card.regions).length} منطقة</p>
+                    <button onclick="openOrder('card', '${key}')" class="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-xl text-sm font-semibold transition">
+                        <i class="fas fa-shopping-cart ml-1"></i> طلب الآن
+                    </button>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
         // ================================================================
-        // 9. ORDER MODAL
+        // 10. RENDER ZAIN PACKAGES
         // ================================================================
-        function openGame(gameKey) {
+        function renderZainPackages() {
+            const grid = document.getElementById('zainGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            ZAIN_DATA.packages.forEach(pkg => {
+                const div = document.createElement('div');
+                div.className = 'zain-card bg-white rounded-2xl p-6 shadow-md border border-gray-100 hover:shadow-xl text-center';
+                div.innerHTML = `
+                    <div class="text-4xl mb-3">📱</div>
+                    <h4 class="text-2xl font-bold text-gray-800">${pkg.label} د.أ</h4>
+                    <p class="text-sm text-gray-500 mb-3">رصيد مكالمات</p>
+                    <p class="text-lg font-bold text-blue-600 mb-3">${pkg.price.toFixed(2)} د.أ</p>
+                    <button onclick="openOrder('zain', '${pkg.label}')" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-xl text-sm font-semibold transition">
+                        <i class="fas fa-shopping-cart ml-1"></i> شحن الآن
+                    </button>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        // ================================================================
+        // 11. ORDER MODAL
+        // ================================================================
+        function openOrder(type, key) {
             if (!currentUser) {
                 showToast('⚠️ الرجاء تسجيل الدخول أولاً');
                 toggleAuthModal();
                 return;
             }
 
-            currentGameKey = gameKey;
-            const game = GAMES_DATA[gameKey];
+            currentOrderType = type;
+            currentItemKey = key;
+            
+            let data, regions, title;
+            
+            if (type === 'game') {
+                data = GAMES_DATA[key];
+                regions = Object.keys(data.regions);
+                title = data.name;
+            } else if (type === 'card') {
+                data = CARDS_DATA[key];
+                regions = Object.keys(data.regions);
+                title = data.name;
+            } else if (type === 'zain') {
+                // Zain order - no regions
+                const modalTitle = document.getElementById('modalTitle');
+                modalTitle.innerHTML = `<i class="fas fa-phone ml-2"></i> شحن رصيد زين`;
+                
+                const body = document.getElementById('modalBody');
+                const pkg = ZAIN_DATA.packages.find(p => p.label === key);
+                
+                let html = `
+                    <div class="text-center mb-4">
+                        <div class="text-5xl mb-2">📱</div>
+                        <h4 class="text-2xl font-bold">${pkg.label} د.أ</h4>
+                        <p class="text-lg font-bold text-blue-600">${pkg.price.toFixed(2)} د.أ</p>
+                    </div>
+                    <div id="priceDisplay" class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl text-center mb-3 border border-blue-200">
+                        <span class="text-sm text-gray-600">💰 السعر الإجمالي: </span>
+                        <span id="totalPriceDisplay" class="text-xl font-bold text-blue-600">${pkg.price.toFixed(2)} د.أ</span>
+                    </div>
+                    <div class="space-y-3 mt-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700">اسم العميل <span class="text-red-500">*</span></label>
+                            <input id="customerName" type="text" placeholder="أدخل اسمك" value="${currentUser?.displayName || ''}" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700">رقم الهاتف للشحن <span class="text-red-500">*</span></label>
+                            <input id="phoneNumber" type="tel" placeholder="أدخل رقم الهاتف" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 outline-none">
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-3 mt-5">
+                        <button onclick="saveZainOrder('${key}')" class="order-btn w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition">
+                            <i class="fas fa-save"></i> تأكيد الشحن
+                        </button>
+                    </div>
+                `;
+                
+                body.innerHTML = html;
+                selectedPrice = key;
+                selectedPriceValue = pkg.price;
+                
+                document.getElementById('orderModal').classList.remove('hidden');
+                document.getElementById('modalContent').classList.remove('scale-95');
+                document.getElementById('modalContent').classList.add('scale-100');
+                return;
+            }
+
             const modalTitle = document.getElementById('modalTitle');
-            modalTitle.innerHTML = `<i class="${game.icon} ml-2"></i> ${game.name}`;
+            modalTitle.innerHTML = `<i class="${data.icon} ml-2"></i> ${title}`;
 
             const body = document.getElementById('modalBody');
-            const regions = Object.keys(game.regions);
             let html = `
                 <div class="mb-3">
                     <label class="block text-sm font-semibold text-gray-700 mb-2">اختر المنطقة:</label>
@@ -789,51 +1217,89 @@
                 </div>
             `;
 
-            html += `<div id="pointsSection" class="mb-3 p-3 bg-yellow-50 rounded-xl border border-yellow-200">`;
-            if (userPoints > 0) {
+            // Points discount section (only for games)
+            if (type === 'game' && userPoints > 0) {
                 html += `
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm font-semibold text-gray-700">🪙 استخدام النقاط للخصم</span>
-                        <button id="usePointsToggle" class="use-points-toggle inactive" onclick="toggleUsePoints()">
-                            غير مفعل
-                        </button>
-                    </div>
-                    <p class="text-xs text-gray-500 mt-1">لديك ${userPoints} نقطة (كل نقطة = 0.10 د.أ)</p>
-                    <div id="pointsDiscountDisplay" class="text-xs text-green-600 font-semibold mt-1 hidden">
-                        سيتم خصم 0.00 د.أ
+                    <div class="mb-3 p-3 bg-yellow-50 rounded-xl border border-yellow-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-semibold text-gray-700">🪙 استخدام النقاط للخصم</span>
+                            <button id="usePointsToggle" class="use-points-toggle inactive" onclick="toggleUsePoints()">
+                                غير مفعل
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">لديك ${userPoints} نقطة</p>
+                        <div id="pointsDiscountDisplay" class="text-xs text-green-600 font-semibold mt-1 hidden">
+                            سيتم خصم 0.00 د.أ
+                        </div>
+                        <div id="pointsDiscountOptions" class="hidden mt-2">
+                            <label class="text-xs text-gray-600">اختر الخصم:</label>
+                            <select id="discountSelect" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm mt-1" onchange="updateDiscountSelection()">
+                                <option value="0">بدون خصم</option>
+                                <option value="10">10 نقاط = 0.10 د.أ</option>
+                                <option value="30">30 نقطة = 0.20 د.أ</option>
+                                <option value="158">158 نقطة = 5.00 د.أ (حد أدنى 5 د.أ)</option>
+                            </select>
+                        </div>
                     </div>
                 `;
-            } else {
+            } else if (type === 'game') {
                 html += `
-                    <div class="text-center">
-                        <p class="text-sm text-gray-600">🪙 You don't have any points</p>
-                        <a onclick="closeModal(); openPointsModal();" class="text-xs text-blue-600 hover:underline cursor-pointer">شراء نقاط</a>
+                    <div class="mb-3 p-3 bg-yellow-50 rounded-xl border border-yellow-200 text-center">
+                        <p class="text-sm text-gray-600">🪙 ليس لديك نقاط للخصم</p>
                     </div>
                 `;
             }
-            html += `</div>`;
 
-            html += `
-                <div class="space-y-3 mt-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700">اسم العميل <span class="text-red-500">*</span></label>
-                        <input id="customerName" type="text" placeholder="أدخل اسمك" value="${currentUser?.displayName || ''}" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 outline-none">
+            // Delivery info based on type
+            if (type === 'game') {
+                html += `
+                    <div class="space-y-3 mt-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700">اسم العميل <span class="text-red-500">*</span></label>
+                            <input id="customerName" type="text" placeholder="أدخل اسمك" value="${currentUser?.displayName || ''}" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700">رقم الهاتف <span class="text-red-500">*</span></label>
+                            <input id="phoneNumber" type="tel" placeholder="لإرسال البطاقة" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700">الـ ID / الأيدي <span class="text-red-500">*</span></label>
+                            <input id="playerId" type="text" placeholder="أدخل معرف اللعبة" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 outline-none">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700">الـ ID / الأيدي <span class="text-red-500">*</span></label>
-                        <input id="playerId" type="text" placeholder="أدخل معرف اللعبة" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 outline-none">
+                    <div class="flex flex-col gap-3 mt-5">
+                        <button onclick="saveOrder()" class="order-btn w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition">
+                            <i class="fas fa-save"></i> حفظ الطلب
+                        </button>
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700">رقم الهاتف <span class="text-red-500">*</span></label>
-                        <input id="phoneNumber" type="tel" placeholder="مثال: 079xxxxxxxx" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 outline-none">
+                `;
+            } else if (type === 'card') {
+                html += `
+                    <div class="space-y-3 mt-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700">اسم العميل <span class="text-red-500">*</span></label>
+                            <input id="customerName" type="text" placeholder="أدخل اسمك" value="${currentUser?.displayName || ''}" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700">رقم الواتساب أو البريد الإلكتروني <span class="text-red-500">*</span></label>
+                            <input id="deliveryContact" type="text" placeholder="لإرسال البطاقة" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700">الـ ID / الأيدي <span class="text-red-500">*</span></label>
+                            <input id="playerId" type="text" placeholder="أدخل معرف اللعبة" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-400 outline-none">
+                        </div>
                     </div>
-                </div>
-                <div class="flex flex-col sm:flex-row gap-3 mt-5">
-                    <button onclick="sendWhatsApp()" class="whatsapp-btn flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition"><i class="fab fa-whatsapp text-xl"></i> إرسال عبر واتساب</button>
-                    <button onclick="saveOrder()" class="order-btn flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition"><i class="fas fa-save"></i> حفظ في الطلبات</button>
-                </div>
-                <div class="text-xs text-gray-500 mt-2 text-center">سيتم حفظ طلبك في قاعدة البيانات مع حالة "جديد"</div>
-            `;
+                    <div class="flex flex-col gap-3 mt-5">
+                        <button onclick="sendWhatsApp()" class="whatsapp-btn w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition">
+                            <i class="fab fa-whatsapp text-xl"></i> إرسال عبر واتساب
+                        </button>
+                        <button onclick="saveCardOrder()" class="order-btn w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition">
+                            <i class="fas fa-save"></i> حفظ الطلب
+                        </button>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-2 text-center">اختر إما الإرسال عبر واتساب أو حفظ الطلب</div>
+                `;
+            }
 
             body.innerHTML = html;
 
@@ -856,8 +1322,8 @@
 
         function renderPrices(region) {
             const container = document.getElementById('pricesContainer');
-            const game = GAMES_DATA[currentGameKey];
-            const regionData = game.regions[region];
+            const data = currentOrderType === 'game' ? GAMES_DATA[currentItemKey] : CARDS_DATA[currentItemKey];
+            const regionData = data.regions[region];
             const prices = regionData.prices;
             
             let html = `<label class="block text-sm font-semibold text-gray-700 mb-2">اختر الباقة والسعر:</label><div class="grid grid-cols-2 sm:grid-cols-3 gap-2">`;
@@ -892,23 +1358,35 @@
         }
 
         // ================================================================
-        // 10. POINTS TOGGLE & DISCOUNT
+        // 12. POINTS DISCOUNT SYSTEM
         // ================================================================
         function toggleUsePoints() {
             usePoints = !usePoints;
             const btn = document.getElementById('usePointsToggle');
+            const options = document.getElementById('pointsDiscountOptions');
             if (btn) {
                 if (usePoints) {
                     btn.textContent = 'مفعل ✓';
                     btn.classList.remove('inactive');
                     btn.classList.add('active');
+                    options.classList.remove('hidden');
                 } else {
                     btn.textContent = 'غير مفعل';
                     btn.classList.remove('active');
                     btn.classList.add('inactive');
+                    options.classList.add('hidden');
+                    selectedDiscountPoints = 0;
                 }
             }
             updatePointsDiscount();
+        }
+
+        function updateDiscountSelection() {
+            const select = document.getElementById('discountSelect');
+            if (select) {
+                selectedDiscountPoints = parseInt(select.value);
+                updatePointsDiscount();
+            }
         }
 
         function updatePointsDiscount() {
@@ -916,22 +1394,333 @@
             const totalDisplay = document.getElementById('totalPriceDisplay');
             if (!display || !totalDisplay) return;
 
-            if (usePoints && userPoints > 0 && selectedPriceValue) {
-                const maxDiscount = Math.min(userPoints * 0.10, selectedPriceValue);
-                const discountedPrice = selectedPriceValue - maxDiscount;
-                display.classList.remove('hidden');
-                display.textContent = `🪙 خصم ${maxDiscount.toFixed(2)} د.أ | السعر بعد الخصم: ${discountedPrice.toFixed(2)} د.أ`;
-                totalDisplay.textContent = discountedPrice.toFixed(2) + ' د.أ';
+            if (usePoints && userPoints > 0 && selectedPriceValue && selectedDiscountPoints > 0) {
+                const discountAmount = selectedDiscountPoints * 0.01; // Each point = 0.01 JOD
+                const finalPrice = Math.max(selectedPriceValue - discountAmount, 0);
+                
+                // Check minimum discount amount (5 JOD)
+                if (discountAmount >= 5) {
+                    display.classList.remove('hidden');
+                    display.textContent = `🪙 خصم ${discountAmount.toFixed(2)} د.أ (${selectedDiscountPoints} نقطة) | السعر بعد الخصم: ${finalPrice.toFixed(2)} د.أ`;
+                    totalDisplay.textContent = finalPrice.toFixed(2) + ' د.أ';
+                } else {
+                    display.classList.remove('hidden');
+                    display.textContent = `⚠️ الحد الأدنى للخصم هو 5 د.أ (تحتاج ${500} نقطة)`;
+                    totalDisplay.textContent = selectedPriceValue.toFixed(2) + ' د.أ';
+                }
             } else {
                 display.classList.add('hidden');
                 if (selectedPriceValue) {
                     totalDisplay.textContent = selectedPriceValue.toFixed(2) + ' د.أ';
                 }
+                selectedDiscountPoints = 0;
             }
         }
 
         // ================================================================
-        // 11. POINTS PURCHASE MODAL
+        // 13. ORDER ACTIONS
+        // ================================================================
+        function sendWhatsApp() {
+            if (!validateOrder('whatsapp')) return;
+            const name = document.getElementById('customerName').value.trim();
+            const id = document.getElementById('playerId').value.trim();
+            const data = CARDS_DATA[currentItemKey];
+            
+            const message = `مرحباً ZMOD.JO، أريد طلب: ${data.name} - ${selectedRegion} - الباقة: ${selectedPrice} - السعر: ${selectedPriceValue} د.أ - الاسم: ${name} - الأيدي: ${id}`;
+            window.open(`https://wa.me/962777777777?text=${encodeURIComponent(message)}`, '_blank');
+            showToast('تم التوجيه إلى واتساب');
+        }
+
+        async function saveCardOrder() {
+            if (!validateOrder('save')) return;
+            
+            const name = document.getElementById('customerName').value.trim();
+            const deliveryContact = document.getElementById('deliveryContact').value.trim();
+            const id = document.getElementById('playerId').value.trim();
+            const data = CARDS_DATA[currentItemKey];
+
+            const orderData = {
+                type: 'card',
+                game: data.name,
+                region: selectedRegion,
+                package: selectedPrice,
+                price: selectedPriceValue,
+                customerName: name,
+                deliveryContact: deliveryContact,
+                playerId: id,
+                accountType: currentUser?.isAnonymous ? 'ضيف' : 'مسجل',
+                userId: currentUser?.uid || 'anonymous',
+                status: 'جديد',
+                createdAt: new Date().toISOString(),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                await db.collection('orders').add(orderData);
+                
+                // Add 2 points reward
+                await updateUserPoints(userPoints + 2);
+                
+                showToast('✅ تم حفظ طلبك بنجاح! +2 نقاط مكافأة');
+                closeModal();
+                renderOrdersSection();
+            } catch (error) {
+                showToast('⚠️ فشل حفظ الطلب: ' + error.message);
+            }
+        }
+
+        async function saveOrder() {
+            if (!validateOrder('save')) return;
+            
+            const name = document.getElementById('customerName').value.trim();
+            const phone = document.getElementById('phoneNumber').value.trim();
+            const id = document.getElementById('playerId').value.trim();
+            const data = GAMES_DATA[currentItemKey];
+
+            let finalPrice = selectedPriceValue;
+            let pointsUsed = 0;
+            let discountAmount = 0;
+            
+            if (usePoints && selectedDiscountPoints > 0) {
+                discountAmount = selectedDiscountPoints * 0.01;
+                finalPrice = Math.max(selectedPriceValue - discountAmount, 0);
+                pointsUsed = selectedDiscountPoints;
+            }
+
+            // Check if user has enough points
+            if (pointsUsed > userPoints) {
+                showToast('⚠️ ليس لديك نقاط كافية');
+                return;
+            }
+
+            const orderData = {
+                type: 'game',
+                game: data.name,
+                region: selectedRegion,
+                package: selectedPrice,
+                originalPrice: selectedPriceValue,
+                finalPrice: finalPrice,
+                discountAmount: discountAmount,
+                pointsUsed: pointsUsed,
+                customerName: name,
+                phone: phone,
+                playerId: id,
+                accountType: currentUser?.isAnonymous ? 'ضيف' : 'مسجل',
+                userId: currentUser?.uid || 'anonymous',
+                status: 'جديد',
+                createdAt: new Date().toISOString(),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                // Deduct points if used
+                if (pointsUsed > 0) {
+                    await updateUserPoints(userPoints - pointsUsed);
+                }
+                
+                await db.collection('orders').add(orderData);
+                
+                // Add 2 points reward
+                await updateUserPoints(userPoints + 2);
+                
+                showToast('✅ تم حفظ طلبك بنجاح! +2 نقاط مكافأة');
+                closeModal();
+                renderOrdersSection();
+            } catch (error) {
+                showToast('⚠️ فشل حفظ الطلب: ' + error.message);
+            }
+        }
+
+        async function saveZainOrder(key) {
+            const name = document.getElementById('customerName')?.value?.trim() || '';
+            const phone = document.getElementById('phoneNumber')?.value?.trim() || '';
+            
+            if (!name) { showToast('⚠️ الرجاء إدخال اسم العميل'); return; }
+            if (!phone) { showToast('⚠️ الرجاء إدخال رقم الهاتف للشحن'); return; }
+            
+            const pkg = ZAIN_DATA.packages.find(p => p.label === key);
+            
+            const orderData = {
+                type: 'zain',
+                package: pkg.label,
+                price: pkg.price,
+                customerName: name,
+                phone: phone,
+                accountType: currentUser?.isAnonymous ? 'ضيف' : 'مسجل',
+                userId: currentUser?.uid || 'anonymous',
+                status: 'جديد',
+                createdAt: new Date().toISOString(),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                await db.collection('orders').add(orderData);
+                
+                // Add 2 points reward
+                await updateUserPoints(userPoints + 2);
+                
+                showToast('✅ تم شحن رصيد زين بنجاح! +2 نقاط مكافأة');
+                closeModal();
+                renderOrdersSection();
+            } catch (error) {
+                showToast('⚠️ فشل شحن الرصيد: ' + error.message);
+            }
+        }
+
+        function validateOrder(mode) {
+            const name = document.getElementById('customerName')?.value?.trim() || '';
+            const id = document.getElementById('playerId')?.value?.trim() || '';
+            
+            if (!name) { showToast('⚠️ الرجاء إدخال اسم العميل'); return false; }
+            if (!id) { showToast('⚠️ الرجاء إدخال الأيدي ID'); return false; }
+            
+            if (currentOrderType === 'game') {
+                const phone = document.getElementById('phoneNumber')?.value?.trim() || '';
+                if (mode === 'save' && !phone) { showToast('⚠️ الرجاء إدخال رقم الهاتف للحفظ'); return false; }
+            }
+            
+            if (currentOrderType === 'card') {
+                const deliveryContact = document.getElementById('deliveryContact')?.value?.trim() || '';
+                if (mode === 'save' && !deliveryContact) { showToast('⚠️ الرجاء إدخال رقم الواتساب أو البريد الإلكتروني'); return false; }
+            }
+            
+            if (!selectedRegion && currentOrderType !== 'zain') { showToast('⚠️ الرجاء اختيار المنطقة'); return false; }
+            if (!selectedPrice && currentOrderType !== 'zain') { showToast('⚠️ الرجاء اختيار الباقة'); return false; }
+            if (!selectedPriceValue && currentOrderType !== 'zain') { showToast('⚠️ الرجاء اختيار الباقة'); return false; }
+            
+            return true;
+        }
+
+        // ================================================================
+        // 14. WALLET SECTION
+        // ================================================================
+        function showAddWalletModal() {
+            if (!currentUser) {
+                showToast('⚠️ الرجاء تسجيل الدخول أولاً');
+                toggleAuthModal();
+                return;
+            }
+            document.getElementById('walletModal').classList.remove('hidden');
+        }
+
+        function closeWalletModal() {
+            document.getElementById('walletModal').classList.add('hidden');
+        }
+
+        async function addWalletBalance() {
+            const amount = parseFloat(document.getElementById('walletAmount').value);
+            const method = document.getElementById('walletPaymentMethod').value;
+            
+            if (!amount || amount <= 0) {
+                showToast('⚠️ الرجاء إدخال مبلغ صحيح');
+                return;
+            }
+
+            try {
+                const newBalance = userWallet + amount;
+                await updateUserWallet(newBalance);
+                await addWalletTransaction(amount, 'credit', `شحن المحفظة (${method})`);
+                showToast(`✅ تم شحن ${amount.toFixed(2)} د.أ بنجاح`);
+                closeWalletModal();
+                renderWalletSection();
+                document.getElementById('walletAmount').value = '';
+            } catch (error) {
+                showToast('⚠️ فشل شحن المحفظة: ' + error.message);
+            }
+        }
+
+        async function renderWalletSection() {
+            if (!currentUser) return;
+            
+            const content = document.getElementById('walletContent');
+            if (!content) return;
+            
+            if (!walletExists) {
+                content.innerHTML = `
+                    <div class="no-wallet-message">
+                        <i class="fas fa-wallet"></i>
+                        <h3 class="text-xl font-bold mb-2">لا توجد محفظة مفعلة</h3>
+                        <p class="text-gray-700">لا يوجد رصيد/محفظة مفعلة حالياً</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            content.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
+                        <p class="text-sm opacity-80">الرصيد الحالي</p>
+                        <p class="text-3xl font-bold" id="walletBalance">${userWallet.toFixed(2)} د.أ</p>
+                    </div>
+                    <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl p-6 text-white">
+                        <p class="text-sm opacity-80">نقاط الولاء</p>
+                        <p class="text-3xl font-bold" id="walletPoints">${userPoints}</p>
+                    </div>
+                </div>
+            `;
+            
+            const transactions = await getUserTransactions();
+            const list = document.getElementById('transactionsList');
+            if (!list) return;
+            
+            if (transactions.length === 0) {
+                list.innerHTML = `<div class="text-center text-gray-500 py-4">لا توجد معاملات</div>`;
+                return;
+            }
+            
+            list.innerHTML = transactions.map(t => `
+                <div class="wallet-transaction ${t.type === 'credit' ? 'credit' : 'debit'} bg-gray-50 rounded-lg p-3 flex justify-between items-center">
+                    <div>
+                        <p class="font-semibold">${t.description || t.type}</p>
+                        <p class="text-xs text-gray-500">${new Date(t.date).toLocaleString('ar-JO')}</p>
+                    </div>
+                    <div class="font-bold ${t.type === 'credit' ? 'text-green-600' : 'text-red-600'}">
+                        ${t.type === 'credit' ? '+' : '-'} ${t.amount.toFixed(2)} د.أ
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ================================================================
+        // 15. ORDERS SECTION
+        // ================================================================
+        async function renderOrdersSection() {
+            if (!currentUser) return;
+            
+            const orders = await getUserOrders();
+            const list = document.getElementById('ordersList');
+            if (!list) return;
+            
+            if (orders.length === 0) {
+                list.innerHTML = `<div class="text-center text-gray-500 py-4">لا توجد طلبات</div>`;
+                return;
+            }
+            
+            list.innerHTML = orders.map(order => `
+                <div class="bg-white rounded-xl shadow-md p-4 border-r-4 ${order.status === 'جديد' ? 'border-blue-500' : 'border-green-500'}">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-bold">${order.game || order.type === 'zain' ? 'شحن زين' : 'بطاقة'}</h4>
+                            <p class="text-sm text-gray-600">${order.package || ''} ${order.region ? '- ' + order.region : ''}</p>
+                            <p class="text-sm text-gray-500">العميل: ${order.customerName}</p>
+                            ${order.phone ? `<p class="text-sm text-gray-500">📱 ${order.phone}</p>` : ''}
+                            ${order.deliveryContact ? `<p class="text-sm text-gray-500">📧 ${order.deliveryContact}</p>` : ''}
+                        </div>
+                        <div class="text-left">
+                            <span class="order-status-badge ${order.status === 'جديد' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">
+                                ${order.status}
+                            </span>
+                            <p class="text-sm font-bold text-blue-600 mt-1">${order.finalPrice || order.price || order.originalPrice} د.أ</p>
+                            ${order.pointsUsed ? `<p class="text-xs text-purple-600">🪙 -${order.pointsUsed} نقطة</p>` : ''}
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">${new Date(order.createdAt).toLocaleString('ar-JO')}</p>
+                </div>
+            `).join('');
+        }
+
+        // ================================================================
+        // 16. POINTS PURCHASE MODAL
         // ================================================================
         function openPointsModal() {
             if (!currentUser) {
@@ -1031,97 +1820,12 @@
         }
 
         // ================================================================
-        // 12. ORDER ACTIONS
-        // ================================================================
-        function sendWhatsApp() {
-            if (!validateOrder()) return;
-            const name = document.getElementById('customerName').value.trim();
-            const id = document.getElementById('playerId').value.trim();
-            const game = GAMES_DATA[currentGameKey];
-            
-            let finalPrice = selectedPriceValue;
-            let discountMessage = '';
-            if (usePoints && userPoints > 0) {
-                const discount = Math.min(userPoints * 0.10, selectedPriceValue);
-                finalPrice = selectedPriceValue - discount;
-                discountMessage = ` (بعد خصم ${discount.toFixed(2)} د.أ من النقاط)`;
-            }
-            
-            const message = `مرحباً ZMOD.JO، أريد طلب: ${game.name} - ${selectedRegion} - الباقة: ${selectedPrice} - السعر: ${finalPrice.toFixed(2)} د.أ${discountMessage} - الاسم: ${name} - الأيدي: ${id}`;
-            window.open(`https://wa.me/962777777777?text=${encodeURIComponent(message)}`, '_blank');
-            showToast('تم التوجيه إلى واتساب');
-        }
-
-        async function saveOrder() {
-            if (!validateOrder()) return;
-            
-            const name = document.getElementById('customerName').value.trim();
-            const phone = document.getElementById('phoneNumber').value.trim();
-            const id = document.getElementById('playerId').value.trim();
-            const game = GAMES_DATA[currentGameKey];
-
-            let finalPrice = selectedPriceValue;
-            let pointsUsed = 0;
-            let discountAmount = 0;
-            
-            if (usePoints && userPoints > 0) {
-                discountAmount = Math.min(userPoints * 0.10, selectedPriceValue);
-                finalPrice = selectedPriceValue - discountAmount;
-                pointsUsed = Math.ceil(discountAmount / 0.10);
-            }
-
-            const orderData = {
-                game: game.name,
-                region: selectedRegion,
-                package: selectedPrice,
-                originalPrice: selectedPriceValue,
-                finalPrice: finalPrice,
-                discountAmount: discountAmount,
-                pointsUsed: pointsUsed,
-                customerName: name,
-                phone: phone,
-                playerId: id,
-                accountType: currentUser?.isAnonymous ? 'ضيف' : 'مسجل',
-                userId: currentUser?.uid || 'anonymous',
-                status: 'جديد',
-                createdAt: new Date().toISOString(),
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            };
-
-            try {
-                await db.collection('orders').add(orderData);
-                
-                if (currentUser && currentUser.uid) {
-                    await incrementUserPoints(currentUser.uid);
-                }
-                
-                showToast('✅ تم حفظ طلبك بنجاح! +2 نقاط مكافأة');
-                closeModal();
-            } catch (error) {
-                showToast('⚠️ فشل حفظ الطلب: ' + error.message);
-            }
-        }
-
-        function validateOrder() {
-            const name = document.getElementById('customerName').value.trim();
-            const phone = document.getElementById('phoneNumber').value.trim();
-            const id = document.getElementById('playerId').value.trim();
-            
-            if (!name) { showToast('⚠️ الرجاء إدخال اسم العميل'); return false; }
-            if (!phone) { showToast('⚠️ الرجاء إدخال رقم الهاتف'); return false; }
-            if (!id) { showToast('⚠️ الرجاء إدخال الأيدي ID'); return false; }
-            if (!selectedRegion) { showToast('⚠️ الرجاء اختيار المنطقة'); return false; }
-            if (!selectedPrice) { showToast('⚠️ الرجاء اختيار الباقة'); return false; }
-            if (!selectedPriceValue) { showToast('⚠️ الرجاء اختيار الباقة'); return false; }
-            return true;
-        }
-
-        // ================================================================
-        // 13. UI HELPERS
+        // 17. UI HELPERS
         // ================================================================
         function closeModal() {
             document.getElementById('orderModal').classList.add('hidden');
             usePoints = false;
+            selectedDiscountPoints = 0;
         }
 
         function showToast(msg) {
@@ -1140,11 +1844,16 @@
         document.getElementById('pointsModal').addEventListener('click', function(e) {
             if (e.target === this) closePointsModal();
         });
+        document.getElementById('walletModal').addEventListener('click', function(e) {
+            if (e.target === this) closeWalletModal();
+        });
 
         // ================================================================
-        // 14. INIT
+        // 18. INIT
         // ================================================================
         renderGames();
+        renderCards();
+        renderZainPackages();
         updateUI();
     </script>
 </body>
